@@ -1,0 +1,142 @@
+/*
+ *  Copyright 2009-2021 Alibaba Cloud All rights reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+package com.aliyun.pds.sdk
+
+import android.content.Context
+import com.aliyun.pds.sdk.api.FileApiImpl
+import com.aliyun.pds.sdk.database.DatabaseHelper
+import com.aliyun.pds.sdk.download.SDDownloadTask
+import com.aliyun.pds.sdk.upload.SDUploadTask
+import com.aliyun.pds.sdk.utils.FileUtils
+
+class SDClient {
+
+    lateinit var config: SDConfig
+    lateinit var appContext: Context
+    lateinit var database: DatabaseHelper
+
+
+    val fileApi = FileApiImpl()
+
+    companion object {
+        val instance = SDClient()
+    }
+
+
+    fun init(context: Context, config: SDConfig) {
+        this.config = config
+        this.appContext = context.applicationContext
+        database = DatabaseHelper()
+        database.init(appContext)
+        fileApi.host = config.apiHost
+    }
+
+    fun updateToken(token: SDToken) {
+        config.token = token
+    }
+
+//    fun createDownloadTask(
+//        downloadUrl: String,
+//        fileId: String,
+//        driveId: String?,
+//        fileName: String,
+//        fileSize: Long,
+//        savePath: String,
+//        shareId: String? = "",
+//    ): SDDownloadTask {
+//        return createDownloadTask(
+//            downloadUrl,
+//            fileId,
+//            driveId,
+//            fileName,
+//            fileSize,
+//            savePath,
+//            shareId,
+//            null,
+//            null
+//        )
+//    }
+
+    fun createDownloadTask(
+        downloadUrl: String,
+        fileId: String,
+        driveId: String?,
+        fileName: String,
+        fileSize: Long,
+        savePath: String,
+        shareId: String? = "",
+        crc64Hash: String? = "",
+        completeListener: OnCompleteListener? = null,
+        progressListener: OnProgressListener? = null,
+    ): SDDownloadTask {
+
+        val timestamp = System.currentTimeMillis()
+        val taskId = "$fileId$timestamp"
+        val task = SDDownloadTask(
+            taskId,
+            fileId,
+            fileName,
+            fileSize,
+            downloadUrl,
+            savePath,
+            driveId,
+            shareId,
+            crc64Hash
+        )
+
+        task.setOnCompleteListener(completeListener)
+        task.setOnProgressChangeListener(progressListener)
+        task.start()
+        return task
+    }
+
+    fun createUploadTask(
+        fileName: String,
+        filePath: String,
+        fileSize: Long,
+        parentId: String,
+        mimeType: String,
+        driveId: String?,
+        shareId: String? = null,
+        completeListener: OnCompleteListener? = null,
+        progressListener: OnProgressListener? = null,
+    ): SDUploadTask {
+        val timestamp = System.currentTimeMillis()
+        val taskId = "$parentId$timestamp"
+        val task = SDUploadTask(taskId,
+            fileName,
+            filePath,
+            fileSize,
+            parentId,
+            mimeType,
+            driveId,
+            shareId)
+
+        task.setOnCompleteListener(completeListener)
+        task.setOnProgressChangeListener(progressListener)
+        task.start()
+        return task
+    }
+
+    fun cleanUploadTask(taskId: String) {
+        FileUtils.instance.removeUploadTmp(taskId)
+    }
+
+    fun cleanDownloadTask(taskId: String, savePath: String) {
+        FileUtils.instance.removeDownloadTmp(taskId, savePath)
+    }
+}
