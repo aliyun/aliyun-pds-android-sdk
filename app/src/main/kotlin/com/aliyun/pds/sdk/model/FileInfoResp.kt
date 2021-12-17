@@ -54,6 +54,9 @@ class FileInfoResp : BaseResp() {
     @JSONField(name = "file_id")
     var fileId: String? = ""
 
+    @JSONField(name = "size")
+    var fileSize: Long? = null
+
     var hidden: Boolean? = false
 
     @JSONField(name = "image_media_metadata")
