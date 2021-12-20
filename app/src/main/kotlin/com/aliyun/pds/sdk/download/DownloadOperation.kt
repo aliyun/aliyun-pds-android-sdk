@@ -54,7 +54,8 @@ class DownloadOperation(
     val needSaveBlockList = ConcurrentHashMap<String, DownloadBlockInfo>()
 
     private var taskFuture: Future<*>? = null
-//    private var blocksFuture: MutableList<Future<*>> = arrayListOf()
+
+    //    private var blocksFuture: MutableList<Future<*>> = arrayListOf()
     private var threadPool: ThreadPoolExecutor? = null
 
 
@@ -251,13 +252,16 @@ class DownloadOperation(
         blockList = blockInfoDao.getAll(task.taskId).toMutableList()
         if (blockList.isEmpty()) {
             var blockCount: Int = (task.fileSize / miniBlockSize).toInt()
-            if (blockCount <= 0) {
+            if (blockCount <= 0 && task.fileSize > 0) {
                 blockCount = 1
             }
             blockCount = if (blockCount < maxBlockCount) blockCount else maxBlockCount
 
             val blockSize = task.fileSize / blockCount
-            val remainder = task.fileSize % blockSize
+            var remainder = 0L
+            if (blockSize > 0) {
+                remainder = task.fileSize % blockSize
+            }
 
             for (i in 0 until blockCount) {
                 val blockInfo = DownloadBlockInfo()
@@ -270,9 +274,11 @@ class DownloadOperation(
                 }
                 blockList.add(blockInfo)
             }
-            val ids = blockInfoDao.insert(blockList)
-            for (i in ids.indices) {
-                blockList[i].id = ids[i]
+            if (blockList.isNotEmpty()) {
+                val ids = blockInfoDao.insert(blockList)
+                for (i in ids.indices) {
+                    blockList[i].id = ids[i]
+                }
             }
         }
     }

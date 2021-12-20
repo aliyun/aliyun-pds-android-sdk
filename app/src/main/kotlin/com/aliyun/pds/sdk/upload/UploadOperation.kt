@@ -94,13 +94,16 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         }
 
         var blockCount: Int = (task.fileSize / SDConfig.miniBlock).toInt()
-        if (0 == blockCount) {
+        if (0 == blockCount && task.fileSize > 0) {
             blockCount = 1;
         } else if (blockCount >= SDConfig.maxBlockCount) {
             blockCount = SDConfig.maxBlockCount
         }
         val blockSize = task.fileSize / blockCount
-        val remainder = task.fileSize % blockSize
+        var remainder = 0L
+        if (blockSize > 0) {
+            remainder = task.fileSize % blockSize
+        }
 
         if (task.currentBlock > 0) {
             currentSize = task.currentBlock * blockSize
@@ -110,7 +113,9 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             val blockInfo = UploadBlockInfo(i * blockSize, blockSize, i + 1L, "")
             blockList.add(blockInfo)
         }
-        blockList.last().size += remainder
+        if (blockList.isNotEmpty()) {
+            blockList.last().size += remainder
+        }
     }
 
     fun uploadAction() {
