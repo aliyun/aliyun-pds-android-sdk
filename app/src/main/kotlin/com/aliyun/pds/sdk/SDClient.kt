@@ -49,29 +49,9 @@ class SDClient {
         config.token = token
     }
 
-//    fun createDownloadTask(
-//        downloadUrl: String,
-//        fileId: String,
-//        driveId: String?,
-//        fileName: String,
-//        fileSize: Long,
-//        savePath: String,
-//        shareId: String? = "",
-//    ): SDDownloadTask {
-//        return createDownloadTask(
-//            downloadUrl,
-//            fileId,
-//            driveId,
-//            fileName,
-//            fileSize,
-//            savePath,
-//            shareId,
-//            null,
-//            null
-//        )
-//    }
 
     fun createDownloadTask(
+        taskId: String,
         downloadUrl: String,
         fileId: String,
         driveId: String?,
@@ -85,9 +65,12 @@ class SDClient {
     ): SDDownloadTask {
 
         val timestamp = System.currentTimeMillis()
-        val taskId = "$fileId$timestamp"
+        var tid = taskId
+        if (tid.isEmpty()) {
+           tid = "$fileId$timestamp"
+        }
         val task = SDDownloadTask(
-            taskId,
+            tid,
             fileId,
             fileName,
             fileSize,
@@ -105,6 +88,7 @@ class SDClient {
     }
 
     fun createUploadTask(
+        taskId: String,
         fileName: String,
         filePath: String,
         fileSize: Long,
@@ -116,8 +100,12 @@ class SDClient {
         progressListener: OnProgressListener? = null,
     ): SDUploadTask {
         val timestamp = System.currentTimeMillis()
-        val taskId = "$parentId$timestamp"
-        val task = SDUploadTask(taskId,
+        var tid = taskId
+        if (tid.isEmpty()) {
+            tid = "$parentId$timestamp"
+        }
+        val task = SDUploadTask(
+            tid,
             fileName,
             filePath,
             fileSize,
