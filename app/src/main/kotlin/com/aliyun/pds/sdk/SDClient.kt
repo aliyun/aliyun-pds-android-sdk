@@ -65,7 +65,8 @@ class SDClient {
         fileSize: Long,
         savePath: String,
         shareId: String? = "",
-        crc64Hash: String? = "",
+        contentHash: String? = "",
+        contentHashName: String? = "",
         completeListener: OnCompleteListener? = null,
         progressListener: OnProgressListener? = null,
     ): SDDownloadTask {
@@ -83,7 +84,8 @@ class SDClient {
             savePath,
             driveId,
             shareId,
-            crc64Hash
+            contentHash,
+            contentHashName
         )
 
         task.setOnCompleteListener(completeListener)

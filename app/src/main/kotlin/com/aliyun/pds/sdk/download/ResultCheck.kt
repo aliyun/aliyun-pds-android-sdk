@@ -27,8 +27,8 @@ abstract class ResultCheck {
 
 class CRC64Check : ResultCheck() {
     override fun check(file: File, task: SDDownloadTask): Boolean {
-        if (task.crc64Hash.isNullOrEmpty()) return true
-        return CRC64.fromFile(file)?.stringValue == task.crc64Hash
+        if (task.contentHash.isNullOrEmpty()) return true
+        return CRC64.fromFile(file)?.stringValue == task.contentHash
     }
 }
 

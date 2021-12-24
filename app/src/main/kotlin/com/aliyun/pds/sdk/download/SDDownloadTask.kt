@@ -27,7 +27,8 @@ class SDDownloadTask(
     savePath: String,
     driveId: String?,
     shareId: String?,
-    crc64Hash: String? = ""
+    contentHash: String? = "",
+    contentHashName: String? = ""
 ) : SDBaseTask(taskId) {
 
     val fileId = fileId
@@ -37,9 +38,11 @@ class SDDownloadTask(
     val driveId = driveId
     val shareId = shareId
     val savePath = savePath
-    val crc64Hash = crc64Hash
+    val contentHash = contentHash
+    val contentHashName = contentHashName
 
-    val resultCheck: ResultCheck = CRC64Check()
+    val resultCheck: ResultCheck =
+        (if (contentHashName == "crc64") CRC64Check() else if (contentHashName == "sha1") SHA1Check() else SizeCheck())
 
 
     override fun start() {
@@ -53,7 +56,7 @@ class SDDownloadTask(
 
     override fun forkTask(): SDTask {
         val newTask = SDDownloadTask(
-           taskId, fileId, fileName, fileSize, downloadUrl, savePath, shareId, crc64Hash
+           taskId, fileId, fileName, fileSize, downloadUrl, savePath, shareId, contentHash, contentHashName
         )
         val dao = SDClient.instance.database.transferDB.downloadBlockInfoDao()
         val config = SDClient.instance.config
