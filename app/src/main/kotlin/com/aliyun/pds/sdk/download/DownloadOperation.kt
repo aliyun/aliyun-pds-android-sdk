@@ -299,7 +299,7 @@ class DownloadOperation(
         end: Long,
         listener: HTTPUtils.OnTransferChangeListener,
     ) {
-        val retryCount = 0
+        var retryCount = 0
         var success = false
         var exception: Exception? = null
         do {
@@ -316,9 +316,15 @@ class DownloadOperation(
             } catch (e: Exception) {
                 exception = e
                 if (e is DownloadUrl403Exception) {
-                    refreshDownloadUrl()
+                    val oldUrl = downloadUrl;
+                    synchronized(downloadUrl) {
+                        if (oldUrl == downloadUrl) {
+                            downloadUrl = refreshDownloadUrl()
+                        }
+                    }
                 }
             }
+            retryCount ++
         } while (retryCount < 3 && !success && !stopped)
         if (!success) {
             if (null != exception) {
