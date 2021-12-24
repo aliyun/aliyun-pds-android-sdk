@@ -25,7 +25,7 @@ class SDUploadTask(
     val filePath: String,
     val fileSize: Long,
     val parentId: String,
-    val mimeType: String,
+    val mimeType: String?,
     val driveId: String?,
     val shareId: String?,
 

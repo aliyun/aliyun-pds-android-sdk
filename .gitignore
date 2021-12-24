@@ -9,6 +9,7 @@
 .history
 .svn/
 app/pds_test
+publish.gradle
 
 # IntelliJ related
 *.iml

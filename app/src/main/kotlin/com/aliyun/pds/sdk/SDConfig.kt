@@ -19,7 +19,7 @@ package com.aliyun.pds.sdk
 data class SDConfig(
     var token: SDToken,
     val downloadUrlExpiredTime: Long,
-    val apiHost: String,
+    var apiHost: String,
     val maxRetryCount: Int = 3,
     val canFastUpload: Boolean = true
 ) {

@@ -45,10 +45,16 @@ class SDClient {
         fileApi.host = config.apiHost
     }
 
-    fun updateToken(token: SDToken) {
-        config.token = token
-    }
+    fun updateToken(token: SDToken, apiHost: String) {
+        if (!token.accessToken.isNullOrEmpty()) {
+            config.token = token
+        }
 
+        if (!apiHost.isNullOrEmpty()) {
+            config.apiHost = apiHost
+            fileApi.host = apiHost
+        }
+    }
 
     fun createDownloadTask(
         taskId: String,
@@ -63,10 +69,9 @@ class SDClient {
         completeListener: OnCompleteListener? = null,
         progressListener: OnProgressListener? = null,
     ): SDDownloadTask {
-
-        val timestamp = System.currentTimeMillis()
         var tid = taskId
         if (tid.isEmpty()) {
+           val timestamp = System.currentTimeMillis()
            tid = "$fileId$timestamp"
         }
         val task = SDDownloadTask(
@@ -93,7 +98,7 @@ class SDClient {
         filePath: String,
         fileSize: Long,
         parentId: String,
-        mimeType: String,
+        mimeType: String?,
         driveId: String?,
         shareId: String? = null,
         completeListener: OnCompleteListener? = null,

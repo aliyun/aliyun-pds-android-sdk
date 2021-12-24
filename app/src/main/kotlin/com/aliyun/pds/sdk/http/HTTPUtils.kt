@@ -159,7 +159,7 @@ class HTTPUtils {
     fun uploadData(
         url: String,
         file: File,
-        contentType: String,
+        contentType: String?,
         start: Long,
         size: Long,
         listener: OnTransferChangeListener?,
@@ -176,7 +176,7 @@ class HTTPUtils {
 
 private class FileUploadProgressRequestBody constructor(
     val file: File,
-    val contentType: String,
+    val contentType: String?,
     val size: Long,
     val start: Long,
     val listener: HTTPUtils.OnTransferChangeListener?,
