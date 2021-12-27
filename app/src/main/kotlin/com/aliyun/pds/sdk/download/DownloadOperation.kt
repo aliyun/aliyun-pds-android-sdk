@@ -93,6 +93,7 @@ class DownloadOperation(
         checkDownloadState()
     }
 
+    @Throws(Exception::class)
     fun download() {
         if (stopped) {
             return
@@ -129,6 +130,7 @@ class DownloadOperation(
         }
         var i = 0
         val limit = 4.coerceAtMost(blockList.size);
+        var exception: Exception? = null
         while (i < limit) {
             threadPool?.submit(Callable<Any> {
 //                Log.d("threadCount",
@@ -137,7 +139,15 @@ class DownloadOperation(
                 do {
                     val blockInfo = pair.first
                     val listener = pair.second
-                    downloadBlock(blockInfo.start, blockInfo.offset, blockInfo.end, listener)
+                    try {
+                        downloadBlock(blockInfo.start, blockInfo.offset, blockInfo.end, listener)
+                    } catch (e: Exception) {
+                        for (i in 0 until countDownLatch.count) {
+                            countDownLatch.countDown()
+                        }
+                        exception = e
+                        return@Callable
+                    }
                     countDownLatch.countDown()
                     pair = queue.poll()
                 } while (pair != null)
@@ -147,6 +157,9 @@ class DownloadOperation(
         }
         try {
             countDownLatch.await()
+            if (exception != null) {
+                throw exception!!
+            }
         } catch (e: InterruptedException) {
         }
     }
