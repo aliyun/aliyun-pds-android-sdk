@@ -17,11 +17,7 @@
 package com.aliyun.pds.sdk.download
 
 import android.content.Context
-import com.aliyun.pds.sdk.OnCompleteListener
-import com.aliyun.pds.sdk.OnProgressListener
-import com.aliyun.pds.sdk.Operation
-import com.aliyun.pds.sdk.SDConfig
-import com.aliyun.pds.sdk.SDFileMeta
+import com.aliyun.pds.sdk.*
 import java.lang.Exception
 
 class LivePhotoDownloadOperation(
@@ -95,9 +91,9 @@ class LivePhotoDownloadOperation(
         movOperation = DownloadOperation(context, movTask, blockInfoDao, config, resultCheck)
 
         imageTask.setOnCompleteListener(object : OnCompleteListener {
-            override fun onComplete(taskId: String, fileMeta: SDFileMeta, exception: Exception?) {
-                if (null != exception) {
-                    task.completeListener?.onComplete(taskId, fileMeta, exception)
+            override fun onComplete(taskId: String, fileMeta: SDFileMeta, errorInfo: SDErrorInfo?) {
+                if (null != errorInfo) {
+                    task.completeListener?.onComplete(taskId, fileMeta, errorInfo)
                 } else {
                     movOperation.execute()
                 }
@@ -117,8 +113,8 @@ class LivePhotoDownloadOperation(
         })
 
         movTask.setOnCompleteListener(object: OnCompleteListener {
-            override fun onComplete(taskId: String, fileMeta: SDFileMeta, exception: Exception?) {
-                task.completeListener?.onComplete(taskId, fileMeta, exception)
+            override fun onComplete(taskId: String, fileMeta: SDFileMeta, errorInfo: SDErrorInfo?) {
+                task.completeListener?.onComplete(taskId, fileMeta, errorInfo)
             }
         })
     }

@@ -17,14 +17,12 @@
 package com.aliyun.pds.sdk.download
 
 import android.content.Context
-import com.aliyun.pds.sdk.Operation
-import com.aliyun.pds.sdk.SDConfig
+import com.aliyun.pds.sdk.*
 import com.aliyun.pds.sdk.exception.*
 import com.aliyun.pds.sdk.http.HTTPUtils
 import com.aliyun.pds.sdk.thread.ThreadPoolUtils
 import com.aliyun.pds.sdk.thread.ThreadPoolWrap
 import com.aliyun.pds.sdk.utils.FileUtils
-import com.aliyun.pds.sdk.SDFileMeta
 import okhttp3.internal.toImmutableMap
 import java.io.File
 import java.io.FileNotFoundException
@@ -221,8 +219,12 @@ open class DownloadOperation(
         if (stopped) {
             return
         }
+        var errorInfo: SDErrorInfo? = null
+        if (e != null) {
+            errorInfo = covertFromException(e)
+        }
         task.completeListener?.onComplete(task.taskId,
-            SDFileMeta(task.fileId, task.fileName, ""), e
+            SDFileMeta(task.fileId, task.fileName, ""), errorInfo
         )
     }
 

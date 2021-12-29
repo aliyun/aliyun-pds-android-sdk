@@ -23,7 +23,21 @@ import com.aliyun.pds.sdk.download.SDDownloadTask
 import com.aliyun.pds.sdk.upload.SDUploadTask
 import com.aliyun.pds.sdk.utils.FileUtils
 
+
+enum class SDTransferError {
+    None,
+    Unknown,
+    Network,
+    FileNotExist,
+    SpaceNotEnough,
+    SizeExceed,
+    PermissionDenied,
+    Server,
+    RemoteFileNotExist,
+}
+
 class SDClient {
+
 
     lateinit var config: SDConfig
     lateinit var appContext: Context
@@ -72,8 +86,8 @@ class SDClient {
     ): SDDownloadTask {
         var tid = taskId
         if (tid.isEmpty()) {
-           val timestamp = System.currentTimeMillis()
-           tid = "$fileId$timestamp"
+            val timestamp = System.currentTimeMillis()
+            tid = "$fileId$timestamp"
         }
         val task = SDDownloadTask(
             tid,

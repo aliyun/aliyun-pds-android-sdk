@@ -51,7 +51,7 @@ interface FileApi {
     /**
      * get a file detail
      */
-    fun fileGet(getResp: FileGetRequest): FileInfoResp?
+    fun fileGet(getRequest: FileGetRequest): FileInfoResp?
 
     /**
      * can update file meta info, file name, label, description

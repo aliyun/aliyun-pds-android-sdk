@@ -394,8 +394,12 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             return
         }
         dao.delete(uploadInfo)
+        var errorInfo: SDErrorInfo? = null
+        if (e != null) {
+            errorInfo = covertFromException(e)
+        }
         task.completeListener?.onComplete(task.taskId,
-            SDFileMeta(task.fileId, task.fileName, task.uploadId), e
+            SDFileMeta(task.fileId, task.fileName, task.uploadId), errorInfo
         )
     }
 }
