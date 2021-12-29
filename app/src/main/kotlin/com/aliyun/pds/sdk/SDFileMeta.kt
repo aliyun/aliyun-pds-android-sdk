@@ -14,18 +14,11 @@
  *  limitations under the License.
  */
 
-package com.aliyun.pds.sdk.database
-
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import com.aliyun.pds.sdk.download.DownloadBlockInfo
-import com.aliyun.pds.sdk.download.DownloadBlockInfoDao
-import com.aliyun.pds.sdk.upload.UploadInfo
-import com.aliyun.pds.sdk.upload.UploadInfoDao
+package com.aliyun.pds.sdk
 
 
-@Database(entities = [DownloadBlockInfo::class, UploadInfo::class], version = 1, exportSchema = false)
-abstract class TransferDB : RoomDatabase() {
-    abstract fun downloadBlockInfoDao(): DownloadBlockInfoDao
-    abstract fun uploadInfoDao(): UploadInfoDao
-}
+class SDFileMeta(
+    val fileId: String?,
+    val fileName: String?,
+    val uploadId: String?
+)

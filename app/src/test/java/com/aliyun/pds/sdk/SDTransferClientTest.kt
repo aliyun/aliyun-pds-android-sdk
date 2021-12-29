@@ -41,7 +41,9 @@ class SDTransferClientTest {
 
     @Test
     fun createDownloadTask() {
-        val task = SDClient.instance.createDownloadTask("url",
+        val task = SDClient.instance.createDownloadTask(
+            "1",
+            "url",
             "fileId",
             "driveId",
             "name",
@@ -66,7 +68,9 @@ class SDTransferClientTest {
 
     @Test
     fun createUploadTask() {
-        val task = SDClient.instance.createUploadTask("name",
+        val task = SDClient.instance.createUploadTask(
+            "2",
+            "name",
             "path",
             1000,
             "123",

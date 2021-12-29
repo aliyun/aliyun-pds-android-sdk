@@ -14,18 +14,18 @@
  *  limitations under the License.
  */
 
-package com.aliyun.pds.sdk.database
+package com.aliyun.pds.sdk.upload
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import com.aliyun.pds.sdk.download.DownloadBlockInfo
-import com.aliyun.pds.sdk.download.DownloadBlockInfoDao
-import com.aliyun.pds.sdk.upload.UploadInfo
-import com.aliyun.pds.sdk.upload.UploadInfoDao
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-
-@Database(entities = [DownloadBlockInfo::class, UploadInfo::class], version = 1, exportSchema = false)
-abstract class TransferDB : RoomDatabase() {
-    abstract fun downloadBlockInfoDao(): DownloadBlockInfoDao
-    abstract fun uploadInfoDao(): UploadInfoDao
+@Entity
+class UploadInfo {
+    @PrimaryKey(autoGenerate = true)
+    var id: Long = 0
+    var taskId: String = ""
+    var currentBlock: Int = 0
+    var fileId: String = ""
+    var uploadId: String = ""
+    var uploadState: Int = 0
 }

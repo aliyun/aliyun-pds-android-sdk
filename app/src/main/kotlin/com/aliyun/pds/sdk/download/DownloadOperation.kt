@@ -17,15 +17,14 @@
 package com.aliyun.pds.sdk.download
 
 import android.content.Context
-import android.util.Log
 import com.aliyun.pds.sdk.Operation
-import com.aliyun.pds.sdk.SDClient
 import com.aliyun.pds.sdk.SDConfig
 import com.aliyun.pds.sdk.exception.*
 import com.aliyun.pds.sdk.http.HTTPUtils
 import com.aliyun.pds.sdk.thread.ThreadPoolUtils
 import com.aliyun.pds.sdk.thread.ThreadPoolWrap
 import com.aliyun.pds.sdk.utils.FileUtils
+import com.aliyun.pds.sdk.SDFileMeta
 import okhttp3.internal.toImmutableMap
 import java.io.File
 import java.io.FileNotFoundException
@@ -35,11 +34,11 @@ import java.lang.Exception
 import java.util.concurrent.*
 
 
-class DownloadOperation(
+open class DownloadOperation(
     private val context: Context,
-    private val task: SDDownloadTask,
+    protected val task: SDDownloadTask,
     private val blockInfoDao: DownloadBlockInfoDao,
-    private val config: SDConfig,
+    protected val config: SDConfig,
     private val resultCheck: ResultCheck,
 ) : Operation {
 
@@ -222,11 +221,8 @@ class DownloadOperation(
         if (stopped) {
             return
         }
-        task.completeListener?.onComplete(
-            mapOf(
-                "taskId" to task.taskId,
-                "fileName" to task.fileName,
-            ), e
+        task.completeListener?.onComplete(task.taskId,
+            SDFileMeta(task.fileId, task.fileName, ""), e
         )
     }
 
@@ -392,7 +388,7 @@ class DownloadOperation(
     }
 
 
-    private fun refreshDownloadUrl(): String {
+    open fun refreshDownloadUrl(): String {
         val resp = DownloadApi.instance.refreshDownloadUrl(task, config.downloadUrlExpiredTime)
         return if (null != resp && resp.code == 200 && !(resp.url.isNullOrEmpty())) {
             resp.url.toString()

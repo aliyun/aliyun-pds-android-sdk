@@ -14,18 +14,22 @@
  *  limitations under the License.
  */
 
-package com.aliyun.pds.sdk.database
+package com.aliyun.pds.sdk.upload
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import com.aliyun.pds.sdk.download.DownloadBlockInfo
-import com.aliyun.pds.sdk.download.DownloadBlockInfoDao
-import com.aliyun.pds.sdk.upload.UploadInfo
-import com.aliyun.pds.sdk.upload.UploadInfoDao
+import androidx.room.*
 
+@Dao
+interface UploadInfoDao {
 
-@Database(entities = [DownloadBlockInfo::class, UploadInfo::class], version = 1, exportSchema = false)
-abstract class TransferDB : RoomDatabase() {
-    abstract fun downloadBlockInfoDao(): DownloadBlockInfoDao
-    abstract fun uploadInfoDao(): UploadInfoDao
+    @Query("SELECT * FROM uploadInfo WHERE taskId = :taskId")
+    fun getUploadInfo(taskId : String) : UploadInfo?
+
+    @Insert
+    fun insert(info: UploadInfo)
+
+    @Update
+    fun update(info : UploadInfo)
+
+    @Delete
+    fun delete(info: UploadInfo)
 }

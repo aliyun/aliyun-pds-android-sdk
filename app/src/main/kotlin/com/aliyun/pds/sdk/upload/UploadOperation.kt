@@ -16,19 +16,13 @@
 
 package com.aliyun.pds.sdk.upload
 
-import com.aliyun.pds.sdk.Operation
-import com.aliyun.pds.sdk.SDBaseTask
-import com.aliyun.pds.sdk.SDClient
-import com.aliyun.pds.sdk.SDConfig
+import com.aliyun.pds.sdk.*
 import com.aliyun.pds.sdk.exception.*
 import com.aliyun.pds.sdk.http.HTTPUtils
 import com.aliyun.pds.sdk.model.*
 import com.aliyun.pds.sdk.thread.ThreadPoolUtils
 import com.aliyun.pds.sdk.utils.FileUtils
 import okhttp3.Response
-import okio.buffer
-import okio.sink
-import okio.source
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -45,9 +39,10 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
     private var progressLastUpdate: Long = 0
     private var taskFuture: Future<Any>? = null
     private var stopped = false
-    private lateinit var blockInfoFile: File
 
     private val uploadApi: UploadApi = UploadApi()
+    private lateinit var uploadInfo: UploadInfo
+    private val dao: UploadInfoDao = SDClient.instance.database.transferDB.uploadInfoDao()
 
     override fun execute() {
 
@@ -71,7 +66,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
 
     override fun cancel() {
         stop()
-        blockInfoFile?.delete()
+        dao.delete(uploadInfo)
     }
 
     fun preAction() {
@@ -79,23 +74,23 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
     }
 
     fun initBlock() {
-        val blockInfoDir =
-            File(SDClient.instance.appContext.filesDir, SDConfig.uploadDir)
         blockList.clear()
-        if (!blockInfoDir.exists()) {
-            blockInfoDir.mkdirs()
-        }
-        blockInfoFile = File(blockInfoDir, task.taskId)
-        if (blockInfoFile.exists()) {
-            try {
-                task.currentBlock = blockInfoFile.source().buffer().readInt()
-            } catch (e: Exception) {  // file content not int error
-            }
+        val info = dao.getUploadInfo(task.taskId)
+        if (null != info) {
+            uploadInfo = info
+            task.currentBlock = uploadInfo.currentBlock
+            task.fileId = uploadInfo.fileId
+            task.uploadId = uploadInfo.uploadId
+            task.uploadState = SDUploadTask.UploadState.values()[uploadInfo.uploadState]
+        } else {
+            uploadInfo = UploadInfo()
+            uploadInfo.taskId = task.taskId
+            dao.insert(uploadInfo);
         }
 
         var blockCount: Int = (task.fileSize / SDConfig.miniBlock).toInt()
         if (0 == blockCount && task.fileSize > 0) {
-            blockCount = 1;
+            blockCount = 1
         } else if (blockCount >= SDConfig.maxBlockCount) {
             blockCount = SDConfig.maxBlockCount
         }
@@ -145,16 +140,16 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             params.driveId = task.driveId
         }
 
-        params.name = task.fileName;
-        params.parentFileId = task.parentId;
-        params.type = "file";
+        params.name = task.fileName
+        params.parentFileId = task.parentId
+        params.type = "file"
         params.contentType = task.mimeType
         if (needPreHash) {
             params.preHash = FileUtils.instance.fileRule1kSA1(task.filePath)
         } else {
             task.sha1 = FileUtils.instance.fileSHA1(task.filePath)
             params.contentHash = task.sha1
-            params.contentHashName = "sha1";
+            params.contentHashName = "sha1"
         }
         if (SDClient.instance.config.canFastUpload) {
             params.size = task.fileSize
@@ -168,8 +163,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             list.add(partInfo)
         }
         params.partInfoList = list
-        val host = SDClient.instance.config.apiHost
-        var response: FileCreateResp? = null
+        var response: FileCreateResp?
         try {
             response = uploadApi.createFile(params)
         } catch (e: Exception) {
@@ -190,8 +184,10 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
                     task.uploadState = SDUploadTask.UploadState.COMPLETE
                     currentSize = task.fileSize
                     task.progressListener?.onProgressChange(currentSize)
+                    saveUploadInfo()
                 } else {
                     task.uploadState = SDUploadTask.UploadState.UPLOADING
+                    saveUploadInfo()
                     if (response.partInfoList != null) {
                         updateBlockUrl(response.partInfoList)
                     }
@@ -272,7 +268,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
 
             if (200 == resp.code || 409 == resp.code) {
                 task.currentBlock += 1
-                saveBlockUpdate()
+                saveUploadInfo()
             } else if (403 == resp.code) {
                 val fileInfo = getUploadUrl()
                 if (null == fileInfo?.partInfoList) {
@@ -285,6 +281,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         }
         if (task.currentBlock == blockList.size) {
             task.uploadState = SDUploadTask.UploadState.COMPLETE
+            saveUploadInfo()
         }
     }
 
@@ -302,8 +299,13 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         }
     }
 
-    fun saveBlockUpdate() {
-        blockInfoFile.sink().buffer().writeInt(task.currentBlock).flush()
+    private fun saveUploadInfo() {
+        uploadInfo.fileId = task.fileId!!
+        uploadInfo.uploadId = task.uploadId!!
+        uploadInfo.uploadState = task.uploadState.ordinal
+        uploadInfo.currentBlock = task.currentBlock
+        uploadInfo.taskId = task.taskId
+        dao.update(uploadInfo)
     }
 
     fun getUploadUrl(): FileGetUploadUrlResp? {
@@ -386,34 +388,14 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         }
     }
 
-//    private fun baseParams(): MutableMap<String, Any?> {
-//        val params = HashMap<String, Any?>()
-//        if (!task.shareId.isNullOrEmpty()) {
-//            params["share_id"] = task.shareId
-//        } else if (!task.driveId.isNullOrEmpty()) {
-//            params["drive_id"] = task.driveId
-//        }
-//        params["name"] = task.fileName;
-//        params["parent_file_id"] = task.parentId;
-//        params["type"] = "file";
-//        params["content_type"] = task.mimeType
-//        params["file_id"] = task.fileId
-//        params["upload_id"] = task.uploadId
-//        return params
-//    }
 
     private fun finish(e: Exception? = null) {
         if (stopped) {
             return
         }
-        blockInfoFile?.delete()
-        task.completeListener?.onComplete(
-            mapOf(
-                "taskId" to task.taskId,
-                "currentSize" to currentSize,
-                "fileName" to task.fileName,
-            ), e
+        dao.delete(uploadInfo)
+        task.completeListener?.onComplete(task.taskId,
+            SDFileMeta(task.fileId, task.fileName, task.uploadId), e
         )
     }
-
 }
