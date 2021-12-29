@@ -53,10 +53,11 @@ class UploadActivity : AppCompatActivity() {
             // 请填写自己的parentId
             val parentId = "root"
             // 请填写自己的driveId
-            val driveId = "12810"
+            val driveId = "10460"
             val mimeType = "mimeType"
 //            val shareId = "shareId"
             val task = SDClient.instance.createUploadTask(
+                "3",
                 "edmDrive",
                 file.absolutePath,
                 file.length(),

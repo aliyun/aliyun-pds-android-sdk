@@ -24,9 +24,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
-import com.aliyun.pds.sdk.OnCompleteListener
-import com.aliyun.pds.sdk.OnProgressListener
-import com.aliyun.pds.sdk.SDTask
+import com.aliyun.pds.sdk.*
 import com.aliyun.pds.sdk.download.SDDownloadTask
 import com.aliyun.pds.sdk.upload.SDUploadTask
 
@@ -111,13 +109,12 @@ class TaskItem(
         })
 
         task.setOnCompleteListener(object : OnCompleteListener {
-            override fun onComplete(info: Map<String, Any>, exception: Exception?) {
+            override fun onComplete(taskId: String, fileMeta: SDFileMeta, errorInfo: SDErrorInfo?) {
                 Log.d("task", "完成")
-                Log.d("task", info.toString())
-                Log.d("task", exception.toString())
-                exception?.printStackTrace()
+                Log.d("task", fileMeta.toString())
+                Log.d("task", errorInfo.toString())
                 textView.post {
-                    textView.text = info["fileName"].toString()
+                    textView.text = fileMeta.fileName
                 }
             }
         })

@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         val dir = File(file, "PDSDemo")
         dir.mkdirs()
 
-        val config = SDConfig(token, 3600, apiHost)
+        val config = SDConfig(token, 3600, apiHost, canFastUpload = false)
         SDClient.instance.init(this, config)
 
         download.setOnClickListener {

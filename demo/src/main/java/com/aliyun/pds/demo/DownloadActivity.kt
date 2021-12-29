@@ -52,6 +52,7 @@ class DownloadActivity : BaseActivity() {
             }
 
             val task = SDClient.instance.createDownloadTask(
+                "1" ,
                 url,
                 fileId,
                 driveId,
@@ -83,6 +84,7 @@ class DownloadActivity : BaseActivity() {
             }
 
             val task = SDClient.instance.createDownloadTask(
+                "2",
                 url,
                 fileId,
                 driveId,
