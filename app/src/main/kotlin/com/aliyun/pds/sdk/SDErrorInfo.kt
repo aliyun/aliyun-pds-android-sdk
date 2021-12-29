@@ -27,7 +27,10 @@ class SDErrorInfo(
 
 }
 
-fun covertFromException(exception: Exception): SDErrorInfo {
+fun covertFromException(exception: Exception?): SDErrorInfo {
+    if (null == exception) {
+        return SDErrorInfo(SDTransferError.None, "success")
+    }
     when (exception) {
         is SDForbiddenException -> {
             return SDErrorInfo(SDTransferError.PermissionDenied, "no permission")

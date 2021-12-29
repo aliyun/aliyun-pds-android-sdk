@@ -70,15 +70,16 @@ open class DownloadOperation(
 
     override fun execute() {
         stopped = false
+        var exception : Exception? = null
         taskFuture = ThreadPoolUtils.instance.downloadTaskPool.submit {
             try {
                 preAction()
                 download()
                 resultAction()
-                finish()
             } catch (e: Exception) {
-                errorHandle(e)
+                exception = e
             }
+            finish(exception)
         }
     }
 
@@ -179,9 +180,6 @@ open class DownloadOperation(
     override fun stop() {
         stopped = true
         threadPool?.shutdownNow()
-//        blocksFuture.forEach {
-//            it.cancel(true)
-//        }
         taskFuture?.cancel(true)
     }
 
@@ -189,7 +187,6 @@ open class DownloadOperation(
         stop()
         blockList.clear()
         blockInfoDao.delete(task.taskId)
-
         if (tmpFile.exists()) {
             tmpFile.delete()
         }
@@ -219,13 +216,11 @@ open class DownloadOperation(
         if (stopped) {
             return
         }
-        var errorInfo: SDErrorInfo? = null
-        if (e != null) {
-            errorInfo = covertFromException(e)
-        }
+        var errorInfo = covertFromException(e)
         task.completeListener?.onComplete(task.taskId,
             SDFileMeta(task.fileId, task.fileName, ""), errorInfo
         )
+        cancel()
     }
 
 

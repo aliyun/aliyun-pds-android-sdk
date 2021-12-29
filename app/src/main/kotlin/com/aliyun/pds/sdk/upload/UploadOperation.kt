@@ -47,15 +47,15 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
     override fun execute() {
 
         stopped = false
+        var exception: Exception? = null
         taskFuture = ThreadPoolUtils.instance.uploadTaskPool.submit(Callable<Any> {
             try {
                 preAction()
                 uploadAction()
-                finish()
             } catch (e: Exception) {
-                finish(e)
-                stop()
+                exception = e
             }
+            finish(exception)
         })
     }
 
@@ -393,13 +393,10 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         if (stopped) {
             return
         }
-        dao.delete(uploadInfo)
-        var errorInfo: SDErrorInfo? = null
-        if (e != null) {
-            errorInfo = covertFromException(e)
-        }
+        var errorInfo = covertFromException(e)
         task.completeListener?.onComplete(task.taskId,
             SDFileMeta(task.fileId, task.fileName, task.uploadId), errorInfo
         )
+        cancel()
     }
 }
