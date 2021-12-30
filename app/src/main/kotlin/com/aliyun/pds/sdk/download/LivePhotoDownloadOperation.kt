@@ -19,6 +19,7 @@ package com.aliyun.pds.sdk.download
 import android.content.Context
 import com.aliyun.pds.sdk.*
 import com.aliyun.pds.sdk.utils.FileUtils
+import java.io.File
 
 class LivePhotoDownloadOperation(
     private val context: Context,
@@ -57,6 +58,7 @@ class LivePhotoDownloadOperation(
                 onlyImageTask.setOnProgressChangeListener(task.progressListener)
                 imageOperation =
                     DownloadOperation(context, onlyImageTask, blockInfoDao, config, CRC64Check())
+                imageOperation.execute()
             } else {
                 val nameList = FileUtils.instance.parseFileName(task.fileName)
                 var movTask: SDDownloadTask? = null
@@ -89,8 +91,12 @@ class LivePhotoDownloadOperation(
                     DownloadOperation(context, movTask!!, blockInfoDao, config, CRC64Check())
 
                 imageTask.setOnCompleteListener(object : OnCompleteListener {
-                    override fun onComplete(taskId: String, fileMeta: SDFileMeta, errorInfo: SDErrorInfo?) {
-                        if (null != errorInfo) {
+                    override fun onComplete(
+                        taskId: String,
+                        fileMeta: SDFileMeta,
+                        errorInfo: SDErrorInfo?
+                    ) {
+                        if (null != errorInfo && errorInfo.code != SDTransferError.None) {
                             task.completeListener?.onComplete(taskId, fileMeta, errorInfo)
                         } else {
                             movOperation?.execute()
@@ -111,13 +117,28 @@ class LivePhotoDownloadOperation(
                 })
 
                 movTask.setOnCompleteListener(object : OnCompleteListener {
-                    override fun onComplete(taskId: String, fileMeta: SDFileMeta, errorInfo: SDErrorInfo?) {
+                    override fun onComplete(
+                        taskId: String,
+                        fileMeta: SDFileMeta,
+                        errorInfo: SDErrorInfo?
+                    ) {
                         task.completeListener?.onComplete(taskId, fileMeta, errorInfo)
                     }
                 })
+                val imageFile = File(imageTask.savePath, imageTask.fileName)
+                if (imageFile.exists() && imageFile.length() == imageTask.fileSize) {
+                    val movFile = File(movTask.savePath, movTask.fileName)
+                    if (movFile.exists() && movFile.length() == movTask.fileSize) {
+                        task.completeListener?.onComplete(task.taskId, SDFileMeta(task.fileId, task.fileName), SDErrorInfo(SDTransferError.None, "success"))
+                    } else {
+                        movOperation?.execute()
+                    }
+                } else {
+                    imageOperation.execute()
+                }
             }
         }
-        imageOperation.execute()
+
     }
 
     override fun stop() {
