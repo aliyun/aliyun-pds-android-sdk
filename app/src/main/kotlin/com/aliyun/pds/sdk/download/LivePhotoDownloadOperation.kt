@@ -18,7 +18,7 @@ package com.aliyun.pds.sdk.download
 
 import android.content.Context
 import com.aliyun.pds.sdk.*
-import java.lang.Exception
+import com.aliyun.pds.sdk.utils.FileUtils
 
 class LivePhotoDownloadOperation(
     private val context: Context,
@@ -28,98 +28,128 @@ class LivePhotoDownloadOperation(
 ) : Operation {
 
     lateinit var imageOperation: DownloadOperation
-    lateinit var movOperation: DownloadOperation
+    var movOperation: DownloadOperation? = null
 
     override fun execute() {
-        preAction()
-        downloadAction()
+
+        //todo get streamInfo
+        val resp = DownloadApi.instance.refreshDownloadUrl(task, config.downloadUrlExpiredTime);
+
+        var onlyImage = false
+        if (null == resp) {
+            task.completeListener?.onComplete(
+                task.taskId,
+                SDFileMeta(task.fileId, task.fileName),
+                SDErrorInfo(SDTransferError.Network, "get download url error")
+            )
+            return
+        } else {
+            if (!resp.url.isNullOrEmpty()) {
+                val onlyImageTask = createTask(
+                    task.taskId,
+                    task.fileName,
+                    task.fileSize,
+                    task.savePath,
+                    task.downloadUrl,
+                    task.contentHash
+                )
+                onlyImageTask.setOnCompleteListener(task.completeListener)
+                onlyImageTask.setOnProgressChangeListener(task.progressListener)
+                imageOperation =
+                    DownloadOperation(context, onlyImageTask, blockInfoDao, config, CRC64Check())
+            } else {
+                val nameList = FileUtils.instance.parseFileName(task.fileName)
+                var movTask: SDDownloadTask? = null
+                var imageTask: SDDownloadTask? = null
+                for (stream in resp.streamsInfo?.entries!!) {
+                    val savePath = "${task.savePath}/${task.fileName}"
+                    if (stream.key == "mov") {
+                        movTask = createTask(
+                            "${task.taskId}_mov",
+                            "${nameList[0]}.mov",
+                            stream.value.size,
+                            savePath,
+                            stream.value.url,
+                            stream.value.crc64
+                        )
+                    } else {
+                        imageTask = createTask(
+                            "${task.taskId}_img",
+                            "${nameList[0]}.${stream.key}",
+                            stream.value.size,
+                            savePath,
+                            stream.value.url,
+                            stream.value.crc64
+                        )
+                    }
+                }
+                imageOperation =
+                    DownloadOperation(context, imageTask!!, blockInfoDao, config, CRC64Check())
+                movOperation =
+                    DownloadOperation(context, movTask!!, blockInfoDao, config, CRC64Check())
+
+                imageTask.setOnCompleteListener(object : OnCompleteListener {
+                    override fun onComplete(taskId: String, fileMeta: SDFileMeta, errorInfo: SDErrorInfo?) {
+                        if (null != errorInfo) {
+                            task.completeListener?.onComplete(taskId, fileMeta, errorInfo)
+                        } else {
+                            movOperation?.execute()
+                        }
+                    }
+                })
+
+                imageTask.setOnProgressChangeListener(object : OnProgressListener {
+                    override fun onProgressChange(currentSize: Long) {
+                        task.progressListener?.onProgressChange(currentSize)
+                    }
+                })
+
+                movTask.setOnProgressChangeListener(object : OnProgressListener {
+                    override fun onProgressChange(currentSize: Long) {
+                        task.progressListener?.onProgressChange(imageTask.fileSize + currentSize)
+                    }
+                })
+
+                movTask.setOnCompleteListener(object : OnCompleteListener {
+                    override fun onComplete(taskId: String, fileMeta: SDFileMeta, errorInfo: SDErrorInfo?) {
+                        task.completeListener?.onComplete(taskId, fileMeta, errorInfo)
+                    }
+                })
+            }
+        }
+        imageOperation.execute()
     }
 
     override fun stop() {
         imageOperation.stop()
-        movOperation.stop()
+        movOperation?.stop()
     }
 
     override fun cancel() {
         imageOperation.cancel()
-        movOperation.cancel()
+        movOperation?.cancel()
     }
 
-    fun preAction() {
-
-        //todo get streamInfo
-        val imageFileSize = 0L
-        val movFileSize = 0L
-
-        val imageUrl = ""
-        val movUrl = ""
-
-        val imageSavePath = "${task.savePath}/image"
-        val movSavePath = "${task.savePath}/mov"
-
-        val imageContentHash = ""
-        val movContentHash = ""
-
-
-        val imageTask = SDDownloadTask(task.taskId + "_img",
+    fun createTask(
+        taskId: String,
+        fileName: String,
+        fileSize: Long,
+        savePath: String,
+        url: String,
+        contentHash: String?
+    ): SDDownloadTask {
+        return SDDownloadTask(
+            taskId,
             task.fileId,
-            "img" + task.fileName,
-            imageFileSize,
-            imageUrl,
-            imageSavePath,
+            fileName,
+            fileSize,
+            url,
+            savePath,
             task.driveId,
             task.shareId,
-            imageContentHash,
-            task.contentHashName)
-
-
-        val movTask = SDDownloadTask(task.taskId + "_mov",
-            task.fileId,
-            "mov" + task.fileName,
-            movFileSize,
-            movUrl,
-            movSavePath,
-            task.driveId,
-            task.shareId,
-            movContentHash,
-            task.contentHashName)
-
-        val resultCheck: ResultCheck =
-            (if (task.contentHashName == "crc64") CRC64Check() else if (task.contentHashName == "sha1") SHA1Check() else SizeCheck())
-
-        imageOperation = DownloadOperation(context, imageTask, blockInfoDao, config, resultCheck)
-        movOperation = DownloadOperation(context, movTask, blockInfoDao, config, resultCheck)
-
-        imageTask.setOnCompleteListener(object : OnCompleteListener {
-            override fun onComplete(taskId: String, fileMeta: SDFileMeta, errorInfo: SDErrorInfo?) {
-                if (null != errorInfo) {
-                    task.completeListener?.onComplete(taskId, fileMeta, errorInfo)
-                } else {
-                    movOperation.execute()
-                }
-            }
-        })
-
-        imageTask.setOnProgressChangeListener(object : OnProgressListener {
-            override fun onProgressChange(currentSize: Long) {
-                task.progressListener?.onProgressChange(currentSize)
-            }
-        })
-
-        movTask.setOnProgressChangeListener(object: OnProgressListener {
-            override fun onProgressChange(currentSize: Long) {
-                task.progressListener?.onProgressChange(imageTask.fileSize + currentSize)
-            }
-        })
-
-        movTask.setOnCompleteListener(object: OnCompleteListener {
-            override fun onComplete(taskId: String, fileMeta: SDFileMeta, errorInfo: SDErrorInfo?) {
-                task.completeListener?.onComplete(taskId, fileMeta, errorInfo)
-            }
-        })
+            contentHash,
+            "crc64"
+        )
     }
 
-    fun downloadAction() {
-        imageOperation.execute()
-    }
 }

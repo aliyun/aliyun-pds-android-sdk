@@ -88,7 +88,6 @@ abstract class SDBaseTask(val taskId: String): SDTask {
         }
     }
 
-
     override fun setOnCompleteListener(listener: OnCompleteListener?) {
         completeListener = listener
     }

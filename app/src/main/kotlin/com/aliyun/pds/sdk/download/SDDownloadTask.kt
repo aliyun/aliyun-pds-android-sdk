@@ -20,36 +20,26 @@ import com.aliyun.pds.sdk.*
 
 class SDDownloadTask(
     taskId: String,
-    fileId: String,
-    fileName: String,
-    fileSize: Long,
-    downloadUrl: String,
-    savePath: String,
-    driveId: String?,
-    shareId: String?,
-    contentHash: String? = "",
-    contentHashName: String? = ""
+    val fileId: String,
+    var fileName: String,
+    val fileSize: Long,
+    var downloadUrl: String,
+    val savePath: String,
+    val driveId: String?,
+    val shareId: String?,
+    val contentHash: String? = "",
+    val contentHashName: String? = "",
+    val isLivePhoto: Boolean = false
 ) : SDBaseTask(taskId) {
-
-    val fileId = fileId
-    var fileName = fileName
-    val fileSize = fileSize
-    var downloadUrl = downloadUrl
-    val driveId = driveId
-    val shareId = shareId
-    val savePath = savePath
-    val contentHash = contentHash
-    val contentHashName = contentHashName
 
     val resultCheck: ResultCheck =
         (if (contentHashName == "crc64") CRC64Check() else if (contentHashName == "sha1") SHA1Check() else SizeCheck())
 
+    val config = SDClient.instance.config
+    val dao = SDClient.instance.database.transferDB.downloadBlockInfoDao()
 
     override fun start() {
-        val dao = SDClient.instance.database.transferDB.downloadBlockInfoDao()
-        val config = SDClient.instance.config
-        operation =
-            DownloadOperation(SDClient.instance.appContext, this, dao, config, resultCheck)
+        operation = createOperation(this)
         execute()
         state = TaskState.RUNNING
     }
@@ -58,14 +48,20 @@ class SDDownloadTask(
         val newTask = SDDownloadTask(
            taskId, fileId, fileName, fileSize, downloadUrl, savePath, shareId, contentHash, contentHashName
         )
-        val dao = SDClient.instance.database.transferDB.downloadBlockInfoDao()
-        val config = SDClient.instance.config
-        newTask.operation =
-            DownloadOperation(SDClient.instance.appContext, newTask, dao, config, resultCheck)
+        newTask.operation = createOperation(newTask)
         newTask.execute()
         // cancel old
         cancel()
         return newTask
+    }
+
+    fun createOperation(task: SDDownloadTask) : Operation {
+        val ctx = SDClient.instance.appContext
+        return if (isLivePhoto) {
+            LivePhotoDownloadOperation(ctx, task, dao, config)
+        } else {
+            DownloadOperation(ctx, task, dao, config, resultCheck)
+        }
     }
 
 }

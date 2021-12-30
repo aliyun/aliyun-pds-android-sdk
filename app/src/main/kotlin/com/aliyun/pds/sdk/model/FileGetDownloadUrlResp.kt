@@ -16,10 +16,21 @@
 
 package com.aliyun.pds.sdk.model
 
-class FileGetDownloadUrlResp : BaseResp() {
+import com.alibaba.fastjson.annotation.JSONField
 
+class FileGetDownloadUrlResp : BaseResp() {
     var expiration: String? = ""
     var method: String? = ""
     var size: Long? = 0
     var url: String? = ""
+    @JSONField(name = "streams_info")
+    var streamsInfo: Map<String, StreamsInfoItem>? = null
+}
+
+class StreamsInfoItem {
+    @JSONField(name = "crc64_hash")
+    var crc64: String = ""
+    var url: String = ""
+    var size: Long = 0
+
 }

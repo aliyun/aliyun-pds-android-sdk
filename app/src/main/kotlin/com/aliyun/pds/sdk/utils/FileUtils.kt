@@ -151,7 +151,7 @@ class FileUtils {
         return File(parent, fileName).exists()
     }
 
-    private fun parseFileName(fileName: String): Array<String> {
+    fun parseFileName(fileName: String): Array<String> {
         val index = fileName.lastIndexOf(".")
         var toPrefix: String
         var toSuffix = ""

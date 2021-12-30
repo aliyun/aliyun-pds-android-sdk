@@ -20,5 +20,5 @@ package com.aliyun.pds.sdk
 class SDFileMeta(
     val fileId: String?,
     val fileName: String?,
-    val uploadId: String?
+    val uploadId: String? = ""
 )
