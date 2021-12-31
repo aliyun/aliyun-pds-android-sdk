@@ -185,6 +185,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
                     currentSize = task.fileSize
                     task.progressListener?.onProgressChange(currentSize)
                     saveUploadInfo()
+                    task.state = SDBaseTask.TaskState.FINISH
                 } else {
                     task.uploadState = SDUploadTask.UploadState.UPLOADING
                     saveUploadInfo()
