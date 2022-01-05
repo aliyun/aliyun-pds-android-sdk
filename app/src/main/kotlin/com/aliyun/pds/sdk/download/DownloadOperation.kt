@@ -220,7 +220,7 @@ open class DownloadOperation(
         task.completeListener?.onComplete(task.taskId,
             SDFileMeta(task.fileId, task.fileName, ""), errorInfo
         )
-        cancel()
+        stop()
     }
 
 
@@ -258,7 +258,7 @@ open class DownloadOperation(
         blockList = blockInfoDao.getAll(task.taskId).toMutableList()
         if (blockList.isEmpty()) {
             var blockCount: Int = (task.fileSize / miniBlockSize).toInt()
-            if (blockCount <= 0 && task.fileSize > 0) {
+            if (blockCount <= 0) {
                 blockCount = 1
             }
             blockCount = if (blockCount < maxBlockCount) blockCount else maxBlockCount
@@ -373,6 +373,9 @@ open class DownloadOperation(
     }
 
     private fun checkSum() {
+        if (0L == task.fileSize) {
+            return
+        }
         if (!resultCheck.check(tmpFile, task)) {
             throw SDUnknownException("checkSum error")
         }
