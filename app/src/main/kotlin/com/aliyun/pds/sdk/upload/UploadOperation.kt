@@ -194,26 +194,37 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
                     }
                 }
             } else {
-                if ("QuotaExhausted.Drive" == response.errorCode) {
-                    // 空间不足
-                    throw SpaceNotEnoughException("no space to create file")
-                } else if ("InvalidParameter.SizeExceed" == response.errorCode) {
-                    throw SDSizeExceedException("file size too big")
-                } else if ("ForbiddenUpload" == response.errorCode) {
-                    throw SDForbiddenException("code: ${response.errorCode} msg: ${response.errorMessage}")
-                } else if ("PreHashMatched" == response.errorCode) {
+                if ("PreHashMatched" == response.errorCode) {
                     if (needPreHash) {
                         createFile(false)
                     } else {
                         throw SDUnknownException("recursive pre hash match")
                     }
-                } else if ("NotFound.File" == response.errorCode) {
-                    //上传的目标文件夹不存在
-                    throw FileNotFoundException(response.errorMessage)
                 } else {
-                    throw SDServerException(response.code,
-                        "errorCode: ${response.errorCode} msg: ${response.errorMessage}")
+                   serverErrorHandle(response.code, response.errorCode, response.errorMessage)
                 }
+            }
+        }
+    }
+
+    private fun serverErrorHandle(httpCode: Int, errorCode: String?, errorMessage: String?) {
+
+        when {
+            403 == httpCode -> {
+                throw SDForbiddenException("code: $errorCode msg: $errorMessage")
+            }
+            404 == httpCode -> {
+                throw FileNotFoundException(errorMessage)
+            }
+            "QuotaExhausted.Drive" == errorCode -> {
+                throw SpaceNotEnoughException("no space to create file")
+            }
+            "InvalidParameter.SizeExceed" == errorCode -> {
+                throw SDSizeExceedException("file size too big")
+            }
+            else -> {
+                throw SDServerException(httpCode,
+                    "errorCode: $errorCode msg: $errorMessage")
             }
         }
     }
@@ -346,11 +357,11 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             throw SDNetworkException("get upload url error")
         }
 
-        if (resp.code == 200) {
-            return resp
+        return if (resp.code == 200) {
+            resp
         } else {
-            throw SDServerException(resp.code,
-                "errorCode: ${resp.errorCode} errorMsg: ${resp.errorMessage}")
+            serverErrorHandle(resp.code, resp.errorCode, resp.errorMessage)
+            null
         }
     }
 
@@ -384,8 +395,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         if (resp.code == 200) {
             return
         } else {
-            throw SDServerException(resp.code,
-                "errorCode: ${resp.errorCode} errorMsg: ${resp.errorMessage}")
+            serverErrorHandle(resp.code, resp.errorCode, resp.errorMessage)
         }
     }
 
