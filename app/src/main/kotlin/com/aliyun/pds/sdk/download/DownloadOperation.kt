@@ -225,18 +225,18 @@ open class DownloadOperation(
 
 
     private fun initFile() {
-        val file = File(task.savePath)
-        if (!file.exists()) {
-            file.mkdirs()
-        }
+//        val file = File(task.filePath).parentFile
+//        if (!file.exists()) {
+//            file.mkdirs()
+//        }
 
 //        val tmpDir =
 //            File(SDClient.instance.appContext.filesDir, SDConfig.downloadDir)
-        val tmpDir = File(task.savePath)
+        val tmpDir = File(task.filePath).parentFile
         if (!tmpDir.exists()) {
             tmpDir.mkdirs()
         }
-        tmpFile = File("${tmpDir.path}${File.separator}.${task.taskId}.tmp")
+        tmpFile = File("${tmpDir.path}${File.separator}.${task.taskId}_${task.fileId}.tmp")
         if (!tmpFile.exists()) {
             // if name is too long resize to 64
             task.fileName = FileUtils.instance.renameByLength(64, task.fileName)
@@ -382,7 +382,7 @@ open class DownloadOperation(
     }
 
     private fun renameAction() {
-        val dir = File(task.savePath).path
+        val dir = File(task.filePath).parent
         task.fileName = FileUtils.instance.renameByRepeat(dir, task.fileName)
         tmpFile.renameTo(File(dir, task.fileName))
     }

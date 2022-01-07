@@ -48,13 +48,10 @@ class SDUploadTask(
     }
 
     override fun forkTask(): SDTask {
-
         val newTask = SDUploadTask(
             taskId, fileName, filePath, fileSize, parentId, mimeType, driveId, shareId)
-        newTask.operation = UploadOperation(newTask)
-        newTask.execute()
-        // cancel old
-        cancel()
+        newTask.setOnCompleteListener(completeListener)
+        newTask.setOnProgressChangeListener(progressListener)
         return newTask
     }
 

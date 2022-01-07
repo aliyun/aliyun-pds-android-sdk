@@ -46,6 +46,7 @@ class DownloadActivity : BaseActivity() {
             val fileSize = 114499672L
             val file = this.getExternalFilesDir(null)
             val dir = File(file, "Download")
+            val downloadFilePath = File(dir, fileName).path
             Log.d("dir", dir.absolutePath)
             if (!dir.exists()) {
                 dir.mkdirs()
@@ -58,7 +59,7 @@ class DownloadActivity : BaseActivity() {
                 driveId,
                 fileName,
                 fileSize,
-                dir.path,
+                downloadFilePath,
                 null,
                 null,
                 null

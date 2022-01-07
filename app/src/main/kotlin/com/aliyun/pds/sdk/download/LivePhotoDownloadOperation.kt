@@ -50,7 +50,7 @@ class LivePhotoDownloadOperation(
                     task.taskId,
                     task.fileName,
                     task.fileSize,
-                    task.savePath,
+                    task.filePath,
                     task.downloadUrl,
                     task.contentHash
                 )
@@ -64,7 +64,7 @@ class LivePhotoDownloadOperation(
                 var movTask: SDDownloadTask? = null
                 var imageTask: SDDownloadTask? = null
                 for (stream in resp.streamsInfo?.entries!!) {
-                    val savePath = "${task.savePath}/${task.fileName}"
+                    val savePath = "${task.filePath}/${nameList[0]}.mov"
                     if (stream.key == "mov") {
                         movTask = createTask(
                             "${task.taskId}_mov",
@@ -125,9 +125,9 @@ class LivePhotoDownloadOperation(
                         task.completeListener?.onComplete(taskId, fileMeta, errorInfo)
                     }
                 })
-                val imageFile = File(imageTask.savePath, imageTask.fileName)
+                val imageFile = File(imageTask.filePath)
                 if (imageFile.exists() && imageFile.length() == imageTask.fileSize) {
-                    val movFile = File(movTask.savePath, movTask.fileName)
+                    val movFile = File(movTask.filePath)
                     if (movFile.exists() && movFile.length() == movTask.fileSize) {
                         task.completeListener?.onComplete(task.taskId, SDFileMeta(task.fileId, task.fileName), SDErrorInfo(SDTransferError.None, "success"))
                     } else {

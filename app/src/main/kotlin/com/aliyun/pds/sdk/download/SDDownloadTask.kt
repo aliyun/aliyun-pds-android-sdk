@@ -24,7 +24,7 @@ class SDDownloadTask(
     var fileName: String,
     val fileSize: Long,
     var downloadUrl: String,
-    val savePath: String,
+    val filePath: String,
     val driveId: String?,
     val shareId: String?,
     val contentHash: String? = "",
@@ -41,17 +41,15 @@ class SDDownloadTask(
     override fun start() {
         operation = createOperation(this)
         execute()
-        state = TaskState.RUNNING
     }
 
     override fun forkTask(): SDTask {
         val newTask = SDDownloadTask(
-           taskId, fileId, fileName, fileSize, downloadUrl, savePath, shareId, contentHash, contentHashName
+           taskId, fileId, fileName, fileSize, downloadUrl, filePath, shareId, contentHash, contentHashName
         )
         newTask.operation = createOperation(newTask)
-        newTask.execute()
-        // cancel old
-        cancel()
+        newTask.setOnProgressChangeListener(progressListener)
+        newTask.setOnCompleteListener(completeListener)
         return newTask
     }
 

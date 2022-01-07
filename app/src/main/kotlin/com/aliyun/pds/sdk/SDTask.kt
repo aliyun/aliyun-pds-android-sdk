@@ -25,7 +25,7 @@ interface SDTask {
 
     fun start()
 
-    fun restart() : SDTask
+    fun restart(forceClean: Boolean = false) : SDTask
 
     fun pause()
 
@@ -51,8 +51,11 @@ abstract class SDBaseTask(val taskId: String): SDTask {
     var state = TaskState.RUNNING
     protected var operation: Operation? = null
 
-    override fun restart(): SDTask {
+    override fun restart(forceClean: Boolean): SDTask {
         val task =  forkTask()
+        if (forceClean) {
+            cancel()
+        }
         task.start()
         return task
     }
@@ -82,8 +85,8 @@ abstract class SDBaseTask(val taskId: String): SDTask {
     }
 
     protected fun execute() {
+        state = TaskState.RUNNING
         ThreadPoolUtils.instance.taskHandlerThread.submit {
-            state = TaskState.RUNNING
             operation?.execute()
         }
     }
