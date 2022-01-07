@@ -24,7 +24,7 @@ class SDDownloadTask(
     var fileName: String,
     val fileSize: Long,
     var downloadUrl: String,
-    val filePath: String,
+    var filePath: String,
     val driveId: String?,
     val shareId: String?,
     val contentHash: String? = "",

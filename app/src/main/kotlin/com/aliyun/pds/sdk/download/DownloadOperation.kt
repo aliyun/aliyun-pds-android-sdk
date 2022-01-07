@@ -218,7 +218,7 @@ open class DownloadOperation(
         }
         var errorInfo = covertFromException(e)
         task.completeListener?.onComplete(task.taskId,
-            SDFileMeta(task.fileId, task.fileName, ""), errorInfo
+            SDFileMeta(task.fileId, task.fileName, task.filePath, ""), errorInfo
         )
         stop()
     }
@@ -384,7 +384,9 @@ open class DownloadOperation(
     private fun renameAction() {
         val dir = File(task.filePath).parent
         task.fileName = FileUtils.instance.renameByRepeat(dir, task.fileName)
-        tmpFile.renameTo(File(dir, task.fileName))
+        val destFile = File(dir, task.fileName)
+        task.filePath = destFile.path
+        tmpFile.renameTo(destFile)
     }
 
 

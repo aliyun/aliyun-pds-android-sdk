@@ -40,7 +40,7 @@ class LivePhotoDownloadOperation(
         if (null == resp) {
             task.completeListener?.onComplete(
                 task.taskId,
-                SDFileMeta(task.fileId, task.fileName),
+                SDFileMeta(task.fileId, task.fileName, task.filePath),
                 SDErrorInfo(SDTransferError.Network, "get download url error")
             )
             return
@@ -97,7 +97,7 @@ class LivePhotoDownloadOperation(
                         errorInfo: SDErrorInfo?
                     ) {
                         if (null != errorInfo && errorInfo.code != SDTransferError.None) {
-                            task.completeListener?.onComplete(taskId, fileMeta, errorInfo)
+                            task.completeListener?.onComplete(taskId, SDFileMeta(task.fileId, task.fileName, task.filePath), errorInfo)
                         } else {
                             movOperation?.execute()
                         }
@@ -122,14 +122,14 @@ class LivePhotoDownloadOperation(
                         fileMeta: SDFileMeta,
                         errorInfo: SDErrorInfo?
                     ) {
-                        task.completeListener?.onComplete(taskId, fileMeta, errorInfo)
+                        task.completeListener?.onComplete(taskId, SDFileMeta(task.fileId, task.fileName, task.filePath), errorInfo)
                     }
                 })
                 val imageFile = File(imageTask.filePath)
                 if (imageFile.exists() && imageFile.length() == imageTask.fileSize) {
                     val movFile = File(movTask.filePath)
                     if (movFile.exists() && movFile.length() == movTask.fileSize) {
-                        task.completeListener?.onComplete(task.taskId, SDFileMeta(task.fileId, task.fileName), SDErrorInfo(SDTransferError.None, "success"))
+                        task.completeListener?.onComplete(task.taskId, SDFileMeta(task.fileId, task.fileName, task.filePath), SDErrorInfo(SDTransferError.None, "success"))
                     } else {
                         movOperation?.execute()
                     }
