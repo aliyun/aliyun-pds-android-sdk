@@ -45,7 +45,17 @@ class SDDownloadTask(
 
     override fun forkTask(): SDTask {
         val newTask = SDDownloadTask(
-           taskId, fileId, fileName, fileSize, downloadUrl, filePath, shareId, contentHash, contentHashName
+            taskId,
+            fileId,
+            fileName,
+            fileSize,
+            downloadUrl,
+            filePath,
+            driveId,
+            shareId,
+            contentHash,
+            contentHashName,
+            isLivePhoto
         )
         newTask.operation = createOperation(newTask)
         newTask.setOnProgressChangeListener(progressListener)
@@ -53,7 +63,7 @@ class SDDownloadTask(
         return newTask
     }
 
-    fun createOperation(task: SDDownloadTask) : Operation {
+    fun createOperation(task: SDDownloadTask): Operation {
         val ctx = SDClient.instance.appContext
         return if (isLivePhoto) {
             LivePhotoDownloadOperation(ctx, task, dao, config)
