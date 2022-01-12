@@ -70,6 +70,10 @@ class SDClient {
         }
     }
 
+    fun setFastUpload(enableFastUpload: Boolean) {
+        config.canFastUpload = enableFastUpload
+    }
+
     fun createDownloadTask(
         taskId: String,
         downloadUrl: String,

@@ -21,7 +21,9 @@ data class SDConfig(
     val downloadUrlExpiredTime: Long,
     var apiHost: String,
     val maxRetryCount: Int = 3,
-    val canFastUpload: Boolean = true
+    var canFastUpload: Boolean = true,
+    val databaseName: String = "pds_transfer.db",
+    val isDebug: Boolean = false
 ) {
     companion object {
         // 10M
