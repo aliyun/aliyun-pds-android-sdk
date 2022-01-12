@@ -24,10 +24,10 @@ class DatabaseHelper {
     lateinit var transferDB: TransferDB
 
     @Synchronized
-    fun init(context: Context) {
+    fun init(context: Context, dbName: String) {
         transferDB = Room.databaseBuilder(
             context.applicationContext,
-            TransferDB::class.java, "pds_transfer.db"
+            TransferDB::class.java, dbName
         ).fallbackToDestructiveMigration().build()
     }
 }

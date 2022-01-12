@@ -55,18 +55,13 @@ class SDClient {
         this.config = config
         this.appContext = context.applicationContext
         database = DatabaseHelper()
-        database.init(appContext)
+        database.init(appContext, config.databaseName)
         fileApi.host = config.apiHost
     }
 
-    fun updateToken(token: SDToken, apiHost: String) {
+    fun updateToken(token: SDToken) {
         if (!token.accessToken.isNullOrEmpty()) {
             config.token = token
-        }
-
-        if (!apiHost.isNullOrEmpty()) {
-            config.apiHost = apiHost
-            fileApi.host = apiHost
         }
     }
 
