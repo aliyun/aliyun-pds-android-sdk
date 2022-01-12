@@ -45,6 +45,9 @@ fun covertFromException(exception: Exception?): SDErrorInfo {
             return SDErrorInfo(SDTransferError.SpaceNotEnough, "space not enough")
         }
         is FileNotFoundException -> return SDErrorInfo(SDTransferError.FileNotExist, "file not found")
+
+        is RemoteFileNotFoundException -> return SDErrorInfo(SDTransferError.RemoteFileNotExist, "remote file not found")
+
         is SDServerException -> {
             return SDErrorInfo(SDTransferError.Server, "server code is ${exception.code}, msg: ${exception.message}")
         }
