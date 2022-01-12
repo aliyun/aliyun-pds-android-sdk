@@ -214,7 +214,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
                 throw SDForbiddenException("code: $errorCode msg: $errorMessage")
             }
             404 == httpCode -> {
-                throw FileNotFoundException(errorMessage)
+                throw RemoteFileNotFoundException("code: $errorCode msg : $errorMessage")
             }
             "QuotaExhausted.Drive" == errorCode -> {
                 throw SpaceNotEnoughException("no space to create file")

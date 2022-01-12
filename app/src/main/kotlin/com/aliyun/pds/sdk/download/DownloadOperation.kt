@@ -17,12 +17,14 @@
 package com.aliyun.pds.sdk.download
 
 import android.content.Context
+import android.util.Log
 import com.aliyun.pds.sdk.*
 import com.aliyun.pds.sdk.exception.*
 import com.aliyun.pds.sdk.http.HTTPUtils
 import com.aliyun.pds.sdk.thread.ThreadPoolUtils
 import com.aliyun.pds.sdk.thread.ThreadPoolWrap
 import com.aliyun.pds.sdk.utils.FileUtils
+import com.aliyun.pds.sdk.utils.LogUtils
 import okhttp3.internal.toImmutableMap
 import java.io.File
 import java.io.FileNotFoundException
@@ -89,6 +91,12 @@ open class DownloadOperation(
         initFile()
         initBlock()
         checkDownloadState()
+
+        if (LogUtils.instance.isDebug) {
+           LogUtils.instance.log("download pre action")
+           LogUtils.instance.log("download url is ${task.downloadUrl}")
+           LogUtils.instance.log("block count is ${blockList.size}")
+        }
     }
 
     @Throws(Exception::class)
@@ -98,8 +106,6 @@ open class DownloadOperation(
         }
         threadPool?.shutdownNow()
         threadPool = ThreadPoolWrap(4, 4, "pds-sdk-download").pool
-//        blocksFuture.forEach { it.cancel(true) }
-//        blocksFuture.clear()
         val queue = ArrayBlockingQueue<Pair<DownloadBlockInfo, HTTPUtils.OnTransferChangeListener>>(
             maxBlockCount)
         val countDownLatch = CountDownLatch(blockList.size)
@@ -129,10 +135,9 @@ open class DownloadOperation(
         var i = 0
         val limit = 4.coerceAtMost(blockList.size);
         var exception: Exception? = null
+        val lock = ""
         while (i < limit) {
             threadPool?.submit(Callable<Any> {
-//                Log.d("threadCount",
-//                    "->" + ThreadPoolUtils.instance.downloadConcurrentPool.activeCount)
                 var pair = queue.poll()
                 do {
                     val blockInfo = pair.first
@@ -140,17 +145,20 @@ open class DownloadOperation(
                     try {
                         downloadBlock(blockInfo.start, blockInfo.offset, blockInfo.end, listener)
                     } catch (e: Exception) {
-                        for (i in 0 until countDownLatch.count) {
-                            countDownLatch.countDown()
+                        synchronized(lock) {
+                            if (null != exception) return@Callable
+                            exception = e
+//                            Log.d("DownloadOperation", exception.toString())
+                            for (i in 0 until countDownLatch.count) {
+                                countDownLatch.countDown()
+                            }
                         }
-                        exception = e
                         return@Callable
                     }
                     countDownLatch.countDown()
                     pair = queue.poll()
                 } while (pair != null)
             })
-//            blocksFuture.add(f)
             i++
         }
         try {
@@ -158,6 +166,7 @@ open class DownloadOperation(
             if (exception != null) {
                 throw exception!!
             }
+//            Log.d("DownloadOperation", "exception is null")
         } catch (e: InterruptedException) {
         }
     }
@@ -225,13 +234,6 @@ open class DownloadOperation(
 
 
     private fun initFile() {
-//        val file = File(task.filePath).parentFile
-//        if (!file.exists()) {
-//            file.mkdirs()
-//        }
-
-//        val tmpDir =
-//            File(SDClient.instance.appContext.filesDir, SDConfig.downloadDir)
         val tmpDir = File(task.filePath).parentFile
         if (!tmpDir.exists()) {
             tmpDir.mkdirs()
@@ -331,7 +333,7 @@ open class DownloadOperation(
                 }
             }
             retryCount ++
-        } while (retryCount < 3 && !success && !stopped)
+        } while (retryCount < 2 && !success && !stopped)
         if (!success) {
             if (null != exception) {
                 exception.printStackTrace()
@@ -399,7 +401,7 @@ open class DownloadOperation(
                 throw SDNetworkException("network error")
             } else {
                 if ("NotFound.File" == resp.errorCode) {
-                    throw FileNotFoundException("file not found")
+                    throw RemoteFileNotFoundException("file not found")
                 }
                 throw SDServerException(resp.code, resp.errorCode.toString())
             }
