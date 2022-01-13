@@ -85,7 +85,8 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         } else {
             uploadInfo = UploadInfo()
             uploadInfo.taskId = task.taskId
-            dao.insert(uploadInfo);
+            val id = dao.insert(uploadInfo)
+            uploadInfo.id = id
         }
 
         var blockCount: Int = (task.fileSize / SDConfig.miniBlock).toInt()

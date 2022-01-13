@@ -25,7 +25,7 @@ interface UploadInfoDao {
     fun getUploadInfo(taskId : String) : UploadInfo?
 
     @Insert
-    fun insert(info: UploadInfo)
+    fun insert(info: UploadInfo) : Long
 
     @Update
     fun update(info : UploadInfo)
