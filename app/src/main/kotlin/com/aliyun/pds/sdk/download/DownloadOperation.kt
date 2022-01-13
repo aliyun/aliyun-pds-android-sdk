@@ -313,7 +313,7 @@ open class DownloadOperation(
         do {
             try {
                 HTTPUtils.instance.downloadData(
-                    downloadUrl,
+                    downloadUrl!!,
                     tmpFile.path,
                     start,
                     offset,
@@ -325,7 +325,7 @@ open class DownloadOperation(
                 exception = e
                 if (e is DownloadUrl403Exception) {
                     val oldUrl = downloadUrl;
-                    synchronized(downloadUrl) {
+                    synchronized(downloadUrl!!) {
                         if (oldUrl == downloadUrl) {
                             downloadUrl = refreshDownloadUrl()
                         }

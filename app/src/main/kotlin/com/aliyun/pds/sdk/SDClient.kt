@@ -47,6 +47,7 @@ class SDClient {
     val fileApi = FileApiImpl()
 
     companion object {
+        @JvmField
         val instance = SDClient()
     }
 

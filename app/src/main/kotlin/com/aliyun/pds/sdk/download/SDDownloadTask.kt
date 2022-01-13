@@ -23,7 +23,7 @@ class SDDownloadTask(
     val fileId: String,
     var fileName: String,
     val fileSize: Long,
-    var downloadUrl: String,
+    var downloadUrl: String?,
     var filePath: String,
     val driveId: String?,
     val shareId: String?,
