@@ -156,7 +156,7 @@ class LivePhotoDownloadOperation(
         fileName: String,
         fileSize: Long,
         savePath: String,
-        url: String,
+        url: String?,
         contentHash: String?
     ): SDDownloadTask {
         return SDDownloadTask(

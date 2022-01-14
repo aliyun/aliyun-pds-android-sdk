@@ -72,7 +72,7 @@ class SDClient {
 
     fun createDownloadTask(
         taskId: String,
-        downloadUrl: String,
+        downloadUrl: String?,
         fileId: String,
         driveId: String?,
         fileName: String,
