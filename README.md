@@ -6,6 +6,11 @@
 * 文件上传下载
 * 文件相关API操作
 
+**集成**
+
+    implementation 'com.aliyun.pds:android-sdk:0.0.2'
+
+
 **初始化**
 
 ```kotlin
@@ -24,6 +29,8 @@ SDClient.instance.init(this, config)
 ```kotlin
 // 创建任务, 
 val task = SDClient.instance.createDownloadTask(
+    // taskId
+    taskId,
 	// 下载url 
 	url,
 	// fileId
@@ -35,9 +42,13 @@ val task = SDClient.instance.createDownloadTask(
 	// 文件大小
 	fileSize,
 	// 文件保存路径
-	dir.path,
+	filePath,
 	// 文件来自分享（不涉及分享业务设为空 
 	shareId,
+	// 效验hash值
+	contentHash,
+	// hash格式( "sha1", "crc64")
+	contentHashName,
 	// 完成监听（成功，失败都会回调
 	completeListener,
 	// 下载进度监听
@@ -66,6 +77,8 @@ task.restart()
 ```kotlin
 // 创建任务
 val task = SDClient.instance.createUploadTask(
+    // 任务id
+    taskId,
 	// 文件名
 	fileName,
 	// 文件路径
