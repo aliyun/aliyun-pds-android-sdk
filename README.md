@@ -29,8 +29,8 @@ SDClient.instance.init(this, config)
 ```kotlin
 // 创建任务, 
 val task = SDClient.instance.createDownloadTask(
-    // taskId
-    taskId,
+    	// taskId
+    	taskId,
 	// 下载url 
 	url,
 	// fileId
@@ -77,8 +77,8 @@ task.restart()
 ```kotlin
 // 创建任务
 val task = SDClient.instance.createUploadTask(
-    // 任务id
-    taskId,
+    	// 任务id
+    	taskId,
 	// 文件名
 	fileName,
 	// 文件路径
