@@ -25,6 +25,7 @@ Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 def token = properties.getProperty("accessToken")
 def apiHost = properties.getProperty("apiHost")
+def driveId = properties.getProperty("driveId")
 
 
 
@@ -48,6 +49,7 @@ android {
         debug {
             buildConfigField("String", "accessToken", "${token}")
             buildConfigField("String", "apiHost", "${apiHost}")
+            buildConfigField("String", "driveId", "${driveId}")
         }
 
         release {

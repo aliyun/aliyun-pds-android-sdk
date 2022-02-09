@@ -19,6 +19,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/searchEdit"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:hint="搜索"
+        android:singleLine="true"
+        android:imeOptions="actionSearch"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview"
         android:layout_width="match_parent"

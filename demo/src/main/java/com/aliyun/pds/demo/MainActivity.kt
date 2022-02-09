@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "请填写你的token和apiHost", Toast.LENGTH_LONG).show()
         }
 
-        val token = SDToken(BuildConfig.accessToken)
+        val token = SDToken(accessToken)
         val file = this.getExternalFilesDir(null)
         val dir = File(file, "PDSDemo")
         dir.mkdirs()

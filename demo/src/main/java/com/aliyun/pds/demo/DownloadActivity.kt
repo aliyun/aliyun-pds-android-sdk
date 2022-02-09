@@ -74,7 +74,7 @@ class DownloadActivity : BaseActivity() {
 //                "https://bj943.api.aliyunfile.com/v2/redirect?id=c16c8e6c620049af844ce5748223e073"
             val url = ""
             val fileId = "618d1193e9436d4571db46ce916bfb593bffc040"
-            val driveId = "10460"
+            val driveId = BuildConfig.driveId
             val fileName = "IMG_3004.JPG"
             val fileSize = 403656L
             val file = this.getExternalFilesDir(null)
