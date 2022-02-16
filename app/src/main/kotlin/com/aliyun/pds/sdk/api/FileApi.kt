@@ -177,7 +177,11 @@ class FileApiImpl : FileApi {
             resp = HTTPUtils.instance.apiPost(host, path, JSON.toJSONString(body))
             val body: String = resp?.body!!.string()
             val baseResp: T = if (resp?.code < 300) {
-                JSON.parseObject(body, t::class.java)
+                if (body.isNullOrEmpty()) {
+                    t
+                } else {
+                    JSON.parseObject(body, t::class.java)
+                }
             } else {
                 val jsonObject: JSONObject = JSON.parseObject(body)
                 t.errorCode = jsonObject.getString("code")

@@ -19,12 +19,10 @@ package com.aliyun.pds.demo
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextUtils
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
 import com.aliyun.pds.sdk.SDToken
@@ -35,7 +33,7 @@ import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
-    val reqCode = 100;
+    private val reqCode = 100
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -85,7 +83,7 @@ class MainActivity : AppCompatActivity() {
            else -> {
                requestPermissions(this,
                     arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                   reqCode);
+                   reqCode)
             }
         }
     }
