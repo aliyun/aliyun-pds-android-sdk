@@ -21,7 +21,6 @@ plugins {
     id 'jacoco'
 }
 apply plugin: 'kotlin-android'
-apply from: './publish.gradle'
 
 allprojects {
     jacoco {
