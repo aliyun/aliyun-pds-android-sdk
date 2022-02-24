@@ -110,8 +110,8 @@ object TransferUtil {
             file.path,
             file.length(),
             "root",
-            "mimeType",
-            BuildConfig.driveId,
+            "",
+            Config.driveId,
         )
     }
 
@@ -120,7 +120,7 @@ object TransferUtil {
             getTaskId(act),
             item.downloadUrl,
             item.fileId!!,
-            BuildConfig.driveId,
+            item.driveId,
             item.name!!,
             item.fileSize!!,
             downloadFilePath,

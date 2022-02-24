@@ -109,6 +109,7 @@ class FileApiImpl : FileApi {
     private val fileMovePath = "/v2/file/move"
     private val fileListPath = "/v2/file/list"
     private val fileSearchPath = "/v2/file/search"
+    private val getAsyncTask = "/v2/async_task/get"
 
 
     @Throws(IOException::class)
@@ -168,7 +169,7 @@ class FileApiImpl : FileApi {
 
     @Throws(IOException::class)
     override fun getAsyncTask(getAsyncTaskRequest: AsyncTaskRequest): AsyncTaskResp? {
-        return apiPost(fileGetPath, getAsyncTaskRequest, AsyncTaskResp())
+        return apiPost(getAsyncTask, getAsyncTaskRequest, AsyncTaskResp())
     }
 
     private fun <T : BaseResp> apiPost(path: String, body: Any, t: T): T? {

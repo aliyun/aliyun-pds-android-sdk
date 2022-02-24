@@ -1,17 +1,18 @@
-## PDS Android SDK
+# PDS Android SDK
 
-
-**当前主要功能**
+## 当前主要功能
 
 * 文件上传下载
-* 文件相关API操作
+* 文件操作相关API
 
-**集成**
+## 集成
 
-    implementation 'com.aliyun.pds:android-sdk:0.0.2'
+```kotlin
+implementation 'com.aliyun.pds:android-sdk:0.0.2'
+```
 
 
-**初始化**
+## 初始化
 
 ```kotlin
 val token = SDToken("you access token")  // 这个通用流程是你们登入自己的账号系统后获取，后端使用 PDS 平台申请的 appKey & appSecret 换取 token 返回给客户端
@@ -21,10 +22,30 @@ SDClient.instance.init(this, config)
 ```
 
 
+- [PDS Android SDK](#PDS Android SDK)
+  -[当前主要功能](#当前主要功能)
+  -[集成](#集成)
+  -[初始化](#初始化)
+  -[下载任务](#下载任务)
+  -[上传任务](#上传任务)
+  -[文件操作接口](#文件操作接口)
+    -[列举文件或文件夹](#列举文件或文件夹)
+    -[文件搜索](#文件搜索)
+    -[创建文件或者文件夹](#创建文件或者文件夹)
+    -[获取文件或文件夹信息](#获取文件或文件夹信息)
+    -[拷贝文件或文件夹](#拷贝文件或文件夹)
+    -[移动文件或文件夹](#移动文件或文件夹)
+    -[更新文件或文件夹信息](#更新文件或文件夹信息)
+    -[删除文件或文件夹](#删除文件或文件夹)
+    -[其它](#其它)
+  -[demo配置](#demo配置)
 
-**下载任务**
 
-**注意任务的进度和状态回调都在子线程若要更新UI请自行切换到主线程**
+## 下载任务
+
+**注意任务的进度和状态回调都在子线程,若要更新UI请自行切换到主线程**
+
+创建一个 `下载任务` 并操作它 :
 
 ```kotlin
 // 创建任务, 
@@ -69,10 +90,11 @@ task.restart()
 ```
 
 
+## 上传任务
 
-上传任务
+**注意任务的进度和状态回调都在子线程,若要更新UI请自行切换到主线程**
 
-**注意任务的进度和状态回调都在子线程若要更新UI请自行切换到主线程**
+创建一个 `上传任务` 并操作它 :
 
 ```kotlin
 // 创建任务
@@ -111,52 +133,130 @@ task.cancel()
 ```
 
 
+## 文件操作接口 
 
-**文件操作接口** 
+具体请求参数和返回值参考[官方API文档](https://help.aliyun.com/document_detail/175927.html)
 
-具体请求参数和返回值参考官方 AIP 文档  https://help.aliyun.com/document_detail/175927.html
+通过 `SDClient.fileApi` 拿到 `fileApi` 对象后调用如下方法访问对应 api
+> 注：请求示例中的参数仅为基础参数，其它参数请参考官方API文档
+
+### 列举文件或文件夹
 
 ```kotlin
-
-通过 SDClient.fileApi 拿到 fileApi 对象后调用如下方法访问对应 api
-
-// 创建文件
-fun fileCreate(createRequest: FileCreateRequest): FileCreateResp?
-
-// 获取上传url
-fun fileGetUploadUrl(getUploadUrlRequest: FileGetUploadUrlRequest): FileGetUploadUrlResp?
-
-// 文件上传完成
-fun fileComplete(completeRequest: FileCompleteRequest): FileGetResp?
-
-// 获取下载链接
-fun fileGetDownloadUrl(getDownloadUrlRequest: FileGetDownloadUrlRequest): FileGetDownloadUrlResp?
-
-// 获取单个文件详情
-fun fileGet(getResp: FileGetRequest): FileGetResp?
-
-// 更新文件
-fun fileUpdate(updateRequest: FileUpdateRequest): FileGetResp?
-
-// 删除文件
-fun fileDelete(deleteRequest: FileDeleteRequest): FileDeleteResp?
-
-// 拷贝文件
-fun fileCopy(fileCopyRequest: FileCopyRequest): FileCopyResp?
-
-// 移动文件
-fun fileMove(fileMoveRequest: FileMoveRequest): FileMoveResp?
-
-// 文件列表
 fun fileList(fileListRequest: FileListRequest): FileListResp?
 
-// 搜索文件
+// FileListRequest 示例
+val request = FileListRequest()
+request.parentId = "root"               // 所获取文件夹的fileId(root为根目录)
+request.driveId = ""                    // 获取列表的用户driveId
+```
+
+### 文件搜索
+
+```kotlin
 fun fileSearch(fileSearchRequest: FileSearchRequest): FileListResp?
+
+// FileSearchRequest示例
+val request = FileSearchRequest()
+request.query = "name match '$keyStr' and status = 'available'"     // keyStr:搜索关键词
+request.driveId = ""                                                // 搜索的用户driveId
+```
+
+### 创建文件或者文件夹
+
+```kotlin
+fun fileCreate(createRequest: FileCreateRequest): FileCreateResp?
+
+// FileCreateRequest示例
+val createRequest = FileCreateRequest()
+createRequest.checkNameMode = "auto_rename"     // enum (ignore, auto_rename, refuse)
+createRequest.driveId = ""                      // 实施创建操作的用户driveId
+createRequest.name = ""                         // 新建文件的名称
+createRequest.parentFileId = "root"             // 目标文件夹的fileId(root为根目录)
+createRequest.type = "folder"                   // enum (file, folder)
+```
+
+### 获取文件或文件夹信息
+
+```kotlin
+fun fileGet(getResp: FileGetRequest): FileGetResp?
+
+// FileGetRequest 示例
+val getRequest = FileGetRequest()
+getRequest.driveId = ""                     // 实施查看操作的用户driveId
+getRequest.fileId = ""                      // 文件的fileId
+```
+
+### 拷贝文件或文件夹
+
+```kotlin
+fun fileCopy(fileCopyRequest: FileCopyRequest): FileCopyResp?
+
+// FileCopyRequest 示例
+val copyRequest = FileCopyRequest()
+copyRequest.driveId = ""                    // 文件的driveId
+copyRequest.fileId = ""                     // 文件的fileId
+copyRequest.toDriveId = ""                  // 拷贝目标文件夹的driveId
+copyRequest.newName = ""                    // 文件拷贝后的新名字
+copyRequest.toParentId = "root"             // 拷贝目标文件夹的fileId(root为根目录)
+```
+
+### 移动文件或文件夹
+
+```kotlin
+fun fileMove(fileMoveRequest: FileMoveRequest): FileMoveResp?
+
+// FileMoveRequest 示例
+val moveRequest = FileMoveRequest() 
+moveRequest.driveId = ""                    // 文件的driveId
+moveRequest.fileId = ""                     // 文件的fileId
+moveRequest.toDriveId = ""                  // 移动目标文件夹的driveId
+moveRequest.newName = ""                    // 文件移动后的新名字
+moveRequest.toParentId = "root"             // 移动目标文件夹的fileId(root为根目录)
+```
+
+### 更新文件或文件夹信息
+
+```kotlin
+fun fileUpdate(updateRequest: FileUpdateRequest): FileGetResp?
+
+// FileUpdateRequest 示例
+val updateRequest = FileUpdateRequest()
+updateRequest.driveId = item.driveId!!      // 实施更新操作的用户driveId
+updateRequest.fileId = item.fileId          // 文件的fileId
+updateRequest.name = ""                     // 文件更新后的新名字
+```
+
+### 删除文件或文件夹
+
+```kotlin
+fun fileDelete(deleteRequest: FileDeleteRequest): FileDeleteResp?
+
+// FileDeleteRequest 示例
+val delRequest = FileDeleteRequest()
+delRequest.driveId = ""                     // 实施删除操作的用户driveId
+delRequest.fileId = ""                      // 需要删除文件或文件夹的fileId
+```
+
+### 其它
+
+```kotlin
+// 获取文件分片的上传地址
+fun fileGetUploadUrl(getUploadUrlRequest: FileGetUploadUrlRequest): FileGetUploadUrlResp?
+
+// 完成文件上传
+fun fileComplete(completeRequest: FileCompleteRequest): FileGetResp?
+
+// 获取文件下载地址
+fun fileGetDownloadUrl(getDownloadUrlRequest: FileGetDownloadUrlRequest): FileGetDownloadUrlResp?
 
 // 异步任务状态，例如删除包含多个文件的文件夹，此时是一个异步任务，可以通过这个接口获取任务状态
 fun getAsyncTask(getAsyncTaskRequest: AsyncTaskRequest): AsyncTaskResp?
 ```
 
+## demo配置
+
+> Demo配置见demo目录中[README.md](./demo/README.md)文件
 
 
 

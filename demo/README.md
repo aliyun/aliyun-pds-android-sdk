@@ -1,20 +1,20 @@
 ### 配置
 
-token 和 apihost 默认配置在 local.properties，可以配置到这里
+token, apihost, driveId 默认都配置在 local.properties 文件中:
 
-配置格式 
-
+> 配置格式 
 ```
 accessToken="xxxxx"
 apiHost="xxxx"
+driveId="xxxx"
 ```
 
-也可以直接修改代码即可代码在 MainActivity.kt
+也可以直接修改代码,在 [Config.kt](src/main/java/com/aliyun/pds/demo/Config.kt) :
 
 ```kotlin
-val accessToken = BuildConfig.accessToken
-val apiHost = BuildConfig.apiHost
-
+const val accessToken = BuildConfig.accessToken
+const val apiHost = BuildConfig.apiHost
+const val driveId = BuildConfig.driveId
 ```
 
 

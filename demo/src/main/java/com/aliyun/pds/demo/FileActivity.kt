@@ -85,13 +85,32 @@ class FileActivity : BaseActivity(), OnItemClickListener {
         }
 
         addBtn.setOnClickListener {
-            startUpload.launch("")
+            showAddDialog()
         }
 
         gridlayoutManager = GridLayoutManager(this, 2)
         recyclerview.layoutManager = gridlayoutManager
 
         loadData()
+    }
+
+    /**
+     * 创建文件夹
+     */
+    private fun creatFolder() {
+        val createRequest = FileCreateRequest()
+        createRequest.checkNameMode = "auto_rename"
+        createRequest.driveId = Config.driveId
+        createRequest.name = "NewFolder"
+        createRequest.parentFileId = "root"
+        createRequest.type = "folder"  //file: 文件  folder: 文件夹
+
+        thread {
+            val resp = SDClient.instance.fileApi.fileCreate(createRequest)
+            if (resp!!.code == 201) {
+                loadData()
+            }
+        }
     }
 
     /**
@@ -120,8 +139,8 @@ class FileActivity : BaseActivity(), OnItemClickListener {
         thread {
             val request = FileListRequest()
             request.parentId = "root"
-            request.all = true
-            request.driveId = BuildConfig.driveId
+            request.all = false
+            request.driveId = Config.driveId
             request.fields = "*"
             val resp = SDClient.instance.fileApi.fileList(request)
             runOnUiThread {
@@ -140,7 +159,7 @@ class FileActivity : BaseActivity(), OnItemClickListener {
         thread {
             val request = FileSearchRequest()
             request.query = "name match '$keyStr' and status = 'available'"
-            request.driveId = BuildConfig.driveId
+            request.driveId = Config.driveId
             request.fields = "*"
 
             val resp = SDClient.instance.fileApi.fileSearch(request)
@@ -159,7 +178,7 @@ class FileActivity : BaseActivity(), OnItemClickListener {
      */
     private fun showFolderListDialog(title: String, item: FileInfoResp) {
         val folderList: ArrayList<String> = ArrayList()
-        folderList.add("我的文件")
+        folderList.add("个人空间")
         for (data in dataList) {
             if (data.type == "folder" && data.fileId != item.fileId) {
                 folderList.add(data.name!!)
@@ -173,7 +192,7 @@ class FileActivity : BaseActivity(), OnItemClickListener {
                 val copyRequest = FileCopyRequest()
                 copyRequest.driveId = item.driveId!!
                 copyRequest.fileId = item.fileId!!
-                copyRequest.toDriveId = item.driveId!!
+                copyRequest.toDriveId = if (idx == 0) Config.driveId else dataList[idx - 1].driveId
                 copyRequest.newName = "copy_" + item.name!!
                 copyRequest.toParentId = if (idx == 0) "root" else dataList[idx - 1].fileId!!
 
@@ -182,9 +201,9 @@ class FileActivity : BaseActivity(), OnItemClickListener {
                 val moveRequest = FileMoveRequest()
                 moveRequest.driveId = item.driveId!!
                 moveRequest.fileId = item.fileId!!
-                moveRequest.toDriveId = item.driveId!!
+                moveRequest.toDriveId = if (idx == 0) Config.driveId else dataList[idx - 1].driveId
                 moveRequest.newName = item.name!!
-                moveRequest.toParentId = dataList[idx].fileId!!
+                moveRequest.toParentId = if (idx == 0) "root" else dataList[idx - 1].fileId!!
 
                 request(REQUEST_MOVE, moveRequest)
             }
@@ -235,7 +254,7 @@ class FileActivity : BaseActivity(), OnItemClickListener {
 
     override fun details(item: FileInfoResp) {
         val getRequest = FileGetRequest()
-        getRequest.driveId = item.driveId
+        getRequest.driveId = Config.driveId
         getRequest.fileId = item.fileId!!
         getRequest.fields = "*"
 
@@ -244,7 +263,7 @@ class FileActivity : BaseActivity(), OnItemClickListener {
 
     override fun del(item: FileInfoResp) {
         val delRequest = FileDeleteRequest()
-        delRequest.driveId = item.driveId!!
+        delRequest.driveId = Config.driveId
         delRequest.fileId = item.fileId!!
 
         request(REQUEST_DEL, delRequest)
@@ -252,7 +271,7 @@ class FileActivity : BaseActivity(), OnItemClickListener {
 
     override fun update(item: FileInfoResp) {
         val updateRequest = FileUpdateRequest()
-        updateRequest.driveId = item.driveId!!
+        updateRequest.driveId = Config.driveId
         updateRequest.fileId = item.fileId
         updateRequest.name = "update_" + item.name
 
@@ -266,6 +285,9 @@ class FileActivity : BaseActivity(), OnItemClickListener {
         TransferUtil.startDownload(this, item, downloadFilePath)
     }
 
+    /**
+     * 操作接口
+     */
     private fun request(requestType: Int, requestBody: Any) {
         thread {
             var resp = BaseResp()
@@ -297,6 +319,26 @@ class FileActivity : BaseActivity(), OnItemClickListener {
                 loadData()
             }
         }
+    }
+
+    /**
+     * 选择上传文件还是新建文件
+     */
+    private fun showAddDialog() {
+        val items = arrayOf("上传文件", "新建文件夹")
+        val listDialog: AlertDialog.Builder = AlertDialog.Builder(this)
+        listDialog.setTitle("操作")
+        listDialog.setItems(items) { _, idx ->
+            when (idx) {
+                0 ->  {
+                    startUpload.launch("")
+                }
+                1 ->  {
+                    creatFolder()
+                }
+            }
+        }
+        listDialog.show()
     }
 
 }

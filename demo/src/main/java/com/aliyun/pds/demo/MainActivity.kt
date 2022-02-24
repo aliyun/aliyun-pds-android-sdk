@@ -38,8 +38,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val accessToken = BuildConfig.accessToken
-        val apiHost = BuildConfig.apiHost
+        val accessToken = Config.accessToken
+        val apiHost = Config.apiHost
 
         if (TextUtils.isEmpty(accessToken) || TextUtils.isEmpty(apiHost)) {
             Toast.makeText(this, "请填写你的token和apiHost", Toast.LENGTH_LONG).show()

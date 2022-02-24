@@ -53,7 +53,7 @@ class UploadActivity : AppCompatActivity() {
             // 请填写自己的parentId
             val parentId = "root"
             // 请填写自己的driveId
-            val driveId = BuildConfig.driveId
+            val driveId = Config.driveId
             val mimeType = "mimeType"
 //            val shareId = "shareId"
             val task = SDClient.instance.createUploadTask(
