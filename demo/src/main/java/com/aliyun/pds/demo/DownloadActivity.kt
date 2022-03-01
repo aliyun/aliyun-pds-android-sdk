@@ -69,9 +69,6 @@ class DownloadActivity : BaseActivity() {
 
         add_task.setOnClickListener {
             // 请在这里填写上你的 task 信息
-
-//            val url =
-//                "https://bj943.api.aliyunfile.com/v2/redirect?id=c16c8e6c620049af844ce5748223e073"
             val url = ""
             val fileId = "618d1193e9436d4571db46ce916bfb593bffc040"
             val driveId = Config.driveId
