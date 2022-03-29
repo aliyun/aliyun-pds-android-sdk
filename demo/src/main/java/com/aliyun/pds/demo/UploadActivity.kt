@@ -61,6 +61,7 @@ class UploadActivity : AppCompatActivity() {
                 "edmDrive",
                 file.absolutePath,
                 file.length(),
+                "",
                 parentId,
                 mimeType,
                 driveId,

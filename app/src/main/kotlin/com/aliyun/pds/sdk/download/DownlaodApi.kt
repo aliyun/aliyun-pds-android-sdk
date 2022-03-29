@@ -35,6 +35,7 @@ class DownloadApi {
         request.fileId = task.fileId
         request.fileName = task.fileName
         request.expireSec = expireTime
+        request.revisionId = task.revisionId
 
         var resp: FileGetDownloadUrlResp? = null
         try {

@@ -144,6 +144,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         params.name = task.fileName
         params.parentFileId = task.parentId
         params.type = "file"
+        params.fileId = task.fileId
         params.contentType = task.mimeType
         if (needPreHash) {
             params.preHash = FileUtils.instance.fileRule1kSA1(task.filePath)
@@ -155,7 +156,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         if (SDClient.instance.config.canFastUpload) {
             params.size = task.fileSize
         }
-        params.checkNameMode = "auto_rename"
+        params.checkNameMode = task.checkNameMode 
         val list = ArrayList<PartInfo>()
         for (item in blockList) {
             val partInfo = PartInfo()

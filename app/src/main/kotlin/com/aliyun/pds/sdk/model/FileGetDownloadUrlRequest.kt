@@ -34,4 +34,7 @@ class FileGetDownloadUrlRequest {
 
     @JSONField(name = "file_name")
     var fileName: String = ""
+
+    @JSONField(name = "revision_id")
+    var revisionId: String? = ""
 }

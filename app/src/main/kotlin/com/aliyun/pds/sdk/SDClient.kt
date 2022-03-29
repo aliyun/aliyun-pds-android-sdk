@@ -79,6 +79,8 @@ class SDClient {
         fileSize: Long,
         filePath: String,
         shareId: String? = "",
+        revisionId: String?,
+        shareToken: String? = "",
         contentHash: String? = "",
         contentHashName: String? = "",
         completeListener: OnCompleteListener? = null,
@@ -98,6 +100,8 @@ class SDClient {
             filePath,
             driveId,
             shareId,
+            revisionId,
+            shareToken,
             contentHash,
             contentHashName
         )
@@ -113,9 +117,11 @@ class SDClient {
         fileName: String,
         filePath: String,
         fileSize: Long,
+        fileId: String?,
         parentId: String,
         mimeType: String?,
         driveId: String?,
+        checkNameMode: String = "auto_rename",
         shareId: String? = null,
         completeListener: OnCompleteListener? = null,
         progressListener: OnProgressListener? = null,
@@ -130,10 +136,13 @@ class SDClient {
             fileName,
             filePath,
             fileSize,
+            fileId,
             parentId,
             mimeType,
             driveId,
-            shareId)
+            shareId,
+            checkNameMode
+        )
 
         task.setOnCompleteListener(completeListener)
         task.setOnProgressChangeListener(progressListener)

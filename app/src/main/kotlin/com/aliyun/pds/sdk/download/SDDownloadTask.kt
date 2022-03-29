@@ -27,6 +27,8 @@ class SDDownloadTask(
     var filePath: String,
     val driveId: String?,
     val shareId: String?,
+    val revisionId: String?,
+    val shareToken: String?,
     val contentHash: String? = "",
     val contentHashName: String? = "",
     val isLivePhoto: Boolean = false
@@ -53,6 +55,8 @@ class SDDownloadTask(
             filePath,
             driveId,
             shareId,
+            revisionId,
+            shareToken,
             contentHash,
             contentHashName,
             isLivePhoto
