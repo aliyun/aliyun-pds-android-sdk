@@ -85,11 +85,11 @@ class SDClient {
         }
         val task = SDDownloadTask(
             tid,
-            requestInfo.fileId!!,
-            requestInfo.fileName!!,
-            requestInfo.fileSize!!,
+            requestInfo.fileId,
+            requestInfo.fileName,
+            requestInfo.fileSize,
             requestInfo.downloadUrl,
-            requestInfo.filePath!!,
+            requestInfo.filePath,
             requestInfo.driveId,
             requestInfo.shareId,
             requestInfo.revisionId,
