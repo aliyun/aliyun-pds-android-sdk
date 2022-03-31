@@ -23,6 +23,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.aliyun.pds.sdk.SDClient
+import com.aliyun.pds.sdk.upload.UploadRequestInfo
 import kotlinx.android.synthetic.main.activity_upload.*
 import java.io.File
 
@@ -56,15 +57,19 @@ class UploadActivity : AppCompatActivity() {
             val driveId = Config.driveId
             val mimeType = "mimeType"
 //            val shareId = "shareId"
-            val task = SDClient.instance.createUploadTask(
-                "3",
+
+            val requestInfo = UploadRequestInfo(
                 "edmDrive",
                 file.absolutePath,
                 file.length(),
-                "",
                 parentId,
-                mimeType,
                 driveId,
+                mimeType = mimeType
+            )
+
+            val task = SDClient.instance.createUploadTask(
+                "3",
+                requestInfo
             )
             taskList.addTask(task)
         }

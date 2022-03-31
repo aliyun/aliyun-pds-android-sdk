@@ -23,6 +23,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.aliyun.pds.sdk.SDClient
+import com.aliyun.pds.sdk.download.DownloadRequestInfo
 import kotlinx.android.synthetic.main.activity_download.*
 import java.io.File
 
@@ -52,17 +53,18 @@ class DownloadActivity : BaseActivity() {
                 dir.mkdirs()
             }
 
-            val task = SDClient.instance.createDownloadTask(
-                "1" ,
+            val requestInfo = DownloadRequestInfo(
                 url,
                 fileId,
-                driveId,
                 fileName,
-                fileSize,
                 downloadFilePath,
-                null,
-                null,
-                null
+                fileSize,
+                driveId,
+            )
+
+            val task = SDClient.instance.createDownloadTask(
+                "1" ,
+                requestInfo
             )
             taskList.addTask(task)
         }
@@ -81,17 +83,18 @@ class DownloadActivity : BaseActivity() {
                 dir.mkdirs()
             }
 
-            val task = SDClient.instance.createDownloadTask(
-                "2",
+            val requestInfo = DownloadRequestInfo(
                 url,
                 fileId,
-                driveId,
                 fileName,
-                fileSize,
                 dir.path,
-                null,
-                "8913932804751030850",
-                null
+                fileSize,
+                driveId,
+            )
+
+            val task = SDClient.instance.createDownloadTask(
+                "2",
+                requestInfo
             )
 
             taskList.addTask(task)

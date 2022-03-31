@@ -12,7 +12,11 @@ import android.widget.Toast
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatTextView
 import com.aliyun.pds.sdk.*
+import com.aliyun.pds.sdk.download.DownloadRequestInfo
+import com.aliyun.pds.sdk.download.SDDownloadTask
 import com.aliyun.pds.sdk.model.FileInfoResp
+import com.aliyun.pds.sdk.upload.SDUploadTask
+import com.aliyun.pds.sdk.upload.UploadRequestInfo
 import java.io.File
 
 object TransferUtil {
@@ -78,6 +82,7 @@ object TransferUtil {
                         getTransferResultMsg(transferType, errorInfo),
                         Toast.LENGTH_SHORT
                     ).show()
+                    Log.e(TAG, "msg ===>" + errorInfo!!.message)
                 }
                 dialog.dismiss()
             }
@@ -104,30 +109,30 @@ object TransferUtil {
     }
 
     private fun getUploadTask(act: Activity, file: File): SDBaseTask {
-        return SDClient.instance.createUploadTask(
-            getTaskId(act),
+        val requestInfo = UploadRequestInfo(
             file.name,
             file.path,
             file.length(),
-            "",
             "root",
-            "",
-            Config.driveId,
+            Config.driveId
+        )
+
+        return SDClient.instance.createUploadTask(
+            getTaskId(act), requestInfo
         )
     }
 
     private fun getDownloadTask(act: Activity, item: FileInfoResp, downloadFilePath: String): SDBaseTask {
-        return SDClient.instance.createDownloadTask(
-            getTaskId(act),
-            item.downloadUrl,
+        val requestInfo = DownloadRequestInfo(
+            item.downloadUrl!!,
             item.fileId!!,
-            item.driveId,
             item.name!!,
-            item.fileSize!!,
             downloadFilePath,
-            null,
-            null,
-            null
+            item.fileSize!!,
+            Config.driveId)
+
+        return SDClient.instance.createDownloadTask(
+            getTaskId(act), requestInfo
         )
     }
 

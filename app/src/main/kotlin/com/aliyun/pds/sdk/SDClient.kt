@@ -19,8 +19,10 @@ package com.aliyun.pds.sdk
 import android.content.Context
 import com.aliyun.pds.sdk.api.FileApiImpl
 import com.aliyun.pds.sdk.database.DatabaseHelper
+import com.aliyun.pds.sdk.download.DownloadRequestInfo
 import com.aliyun.pds.sdk.download.SDDownloadTask
 import com.aliyun.pds.sdk.upload.SDUploadTask
+import com.aliyun.pds.sdk.upload.UploadRequestInfo
 import com.aliyun.pds.sdk.utils.FileUtils
 
 
@@ -72,38 +74,29 @@ class SDClient {
 
     fun createDownloadTask(
         taskId: String,
-        downloadUrl: String?,
-        fileId: String,
-        driveId: String?,
-        fileName: String,
-        fileSize: Long,
-        filePath: String,
-        shareId: String? = "",
-        revisionId: String?,
-        shareToken: String? = "",
-        contentHash: String? = "",
-        contentHashName: String? = "",
+        requestInfo: DownloadRequestInfo,
         completeListener: OnCompleteListener? = null,
         progressListener: OnProgressListener? = null,
     ): SDDownloadTask {
         var tid = taskId
         if (tid.isEmpty()) {
             val timestamp = System.currentTimeMillis()
-            tid = "$fileId$timestamp"
+            tid = "${requestInfo.fileId}$timestamp"
         }
         val task = SDDownloadTask(
             tid,
-            fileId,
-            fileName,
-            fileSize,
-            downloadUrl,
-            filePath,
-            driveId,
-            shareId,
-            revisionId,
-            shareToken,
-            contentHash,
-            contentHashName
+            requestInfo.fileId!!,
+            requestInfo.fileName!!,
+            requestInfo.fileSize!!,
+            requestInfo.downloadUrl,
+            requestInfo.filePath!!,
+            requestInfo.driveId,
+            requestInfo.shareId,
+            requestInfo.revisionId,
+            requestInfo.shareToken,
+            requestInfo.contentHash,
+            requestInfo.contentHashName,
+            requestInfo.isLivePhoto
         )
 
         task.setOnCompleteListener(completeListener)
@@ -114,34 +107,26 @@ class SDClient {
 
     fun createUploadTask(
         taskId: String,
-        fileName: String,
-        filePath: String,
-        fileSize: Long,
-        fileId: String?,
-        parentId: String,
-        mimeType: String?,
-        driveId: String?,
-        checkNameMode: String = "auto_rename",
-        shareId: String? = null,
+        requestInfo: UploadRequestInfo,
         completeListener: OnCompleteListener? = null,
         progressListener: OnProgressListener? = null,
     ): SDUploadTask {
         val timestamp = System.currentTimeMillis()
         var tid = taskId
         if (tid.isEmpty()) {
-            tid = "$parentId$timestamp"
+            tid = "${requestInfo.parentId}$timestamp"
         }
         val task = SDUploadTask(
             tid,
-            fileName,
-            filePath,
-            fileSize,
-            fileId,
-            parentId,
-            mimeType,
-            driveId,
-            shareId,
-            checkNameMode
+            requestInfo.fileName,
+            requestInfo.filePath,
+            requestInfo.fileSize,
+            requestInfo.fileId,
+            requestInfo.parentId,
+            requestInfo.mimeType,
+            requestInfo.driveId,
+            requestInfo.shareId,
+            requestInfo.checkNameMode
         )
 
         task.setOnCompleteListener(completeListener)

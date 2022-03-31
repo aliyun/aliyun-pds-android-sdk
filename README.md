@@ -48,28 +48,40 @@ SDClient.instance.init(this, config)
 创建一个 `下载任务` 并操作它 :
 
 ```kotlin
+// 初始化下载信息
+val requestInfo = DownloadRequestInfo(
+            // 下载url 
+			url,
+            // fileId
+			fileId,
+            // 文件名
+			fileName,
+            // 文件保存路径
+			filePath,
+            // 文件大小
+			fileSize,
+            // 用户driveId
+			driveId,
+            // 文件来自分享(不涉及分享业务可不传
+			shareId,
+            // 文件来自分享(不涉及分享业务可不传
+			shareToken,
+            // 历史版本相关id(不涉及可不传)
+			revisionId,
+            // 效验hash值(可不传)
+			contentHash,
+            // hash格式( "sha1", "crc64")(可不传)
+			contentHashName,
+			// 是否动态图片(可不传)
+			isLivePhoto
+	)
+
 // 创建任务, 
 val task = SDClient.instance.createDownloadTask(
     // taskId
     taskId,
-	// 下载url 
-	url,
-	// fileId
-	fileId,
-	// 所属driveId
-	driveId,
-	// 文件名
-	fileName,
-	// 文件大小
-	fileSize,
-	// 文件保存路径
-	filePath,
-	// 文件来自分享（不涉及分享业务设为空 
-	shareId,
-	// 效验hash值
-	contentHash,
-	// hash格式( "sha1", "crc64")
-	contentHashName,
+	// 下载信息
+	requestInfo,
 	// 完成监听（成功，失败都会回调
 	completeListener,
 	// 下载进度监听
@@ -97,24 +109,34 @@ task.restart()
 创建一个 `上传任务` 并操作它 :
 
 ```kotlin
+// 初始化上传信息
+val requestInfo = UploadRequestInfo(
+            // 文件名
+			fileName,
+            // 文件路径
+			path,
+            // 文件大小
+			length,
+            // 文件父目录id
+			parentId,
+            // 用户 driveId
+			driveId,
+			// 文件id(历史版本相关不设计可不传
+			fileId,
+			// 分享Id(不涉及分享业务可不传
+			shareId,
+			// 文件类型(可不填
+			mimeType,
+			// 重命名规则(可不传
+			checkNameMode
+        )
+
 // 创建任务
 val task = SDClient.instance.createUploadTask(
     // 任务id
     taskId,
-	// 文件名
-	fileName,
-	// 文件路径
-	path,
-	// 文件大小
-	length,
-	// 文件父目录id
-	parentId,
-	// 文件类型 （可选
-	mimeType,
-	// 父目录所属 driveId
-	driveId,
-	// 不涉及分享业务 不传
-	shareId,
+	// 上传信息
+	requestInfo,
 	// 完成监听
 	completeListener,
 	// 进度监听
