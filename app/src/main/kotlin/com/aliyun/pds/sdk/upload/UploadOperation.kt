@@ -46,6 +46,10 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
 
     override fun execute() {
 
+        if (null == task.checkNameMode) {
+            task.checkNameMode = "auto_rename"
+        }
+
         stopped = false
         var exception: Exception? = null
         taskFuture = ThreadPoolUtils.instance.uploadTaskPool.submit(Callable<Any> {
@@ -156,7 +160,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         if (SDClient.instance.config.canFastUpload) {
             params.size = task.fileSize
         }
-        params.checkNameMode = task.checkNameMode 
+        params.checkNameMode = task.checkNameMode
         val list = ArrayList<PartInfo>()
         for (item in blockList) {
             val partInfo = PartInfo()

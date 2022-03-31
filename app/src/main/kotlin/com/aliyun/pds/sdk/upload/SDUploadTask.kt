@@ -29,7 +29,7 @@ class SDUploadTask(
     val mimeType: String?,
     val driveId: String?,
     val shareId: String?,
-    val checkNameMode: String?,
+    var checkNameMode: String?,
 
     ) : SDBaseTask(taskId) {
 
