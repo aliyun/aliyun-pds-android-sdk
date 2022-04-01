@@ -89,6 +89,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         } else {
             uploadInfo = UploadInfo()
             uploadInfo.taskId = task.taskId
+            uploadInfo.fileId = task.fileId
             val id = dao.insert(uploadInfo)
             uploadInfo.id = id
         }

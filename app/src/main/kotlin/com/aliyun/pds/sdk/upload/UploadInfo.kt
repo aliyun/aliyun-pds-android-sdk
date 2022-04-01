@@ -25,7 +25,7 @@ class UploadInfo {
     var id: Long = 0
     var taskId: String = ""
     var currentBlock: Int = 0
-    var fileId: String = ""
+    var fileId: String? = null
     var uploadId: String = ""
     var uploadState: Int = 0
 }
