@@ -27,7 +27,7 @@ class FileCreateResp : BaseResp() {
     var driveId: String? = ""
 
     @JSONField(name = "file_id")
-    var fileId: String? = ""
+    var fileId: String? = null
 
     @JSONField(name = "file_name")
     var fileName: String? = ""

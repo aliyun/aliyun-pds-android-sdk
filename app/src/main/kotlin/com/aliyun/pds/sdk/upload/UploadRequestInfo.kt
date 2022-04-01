@@ -9,7 +9,7 @@ class UploadRequestInfo(
     fileId: String? = null,
     shareId: String? = null,
     mimeType: String? = "",
-    checkNameMode: String = "auto_rename"
+    checkNameMode: String? = "auto_rename"
 ){
     val fileId = fileId
     val fileName = fileName
