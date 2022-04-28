@@ -31,22 +31,22 @@ interface FileApi {
     /**
      *  file upload first step
      */
-    fun fileCreate(createRequest: FileCreateRequest): FileCreateResp?
+    fun fileCreate(createRequest: FileCreateRequest, shareToken: String? = ""): FileCreateResp?
 
     /**
      * get part uploading url
      */
-    fun fileGetUploadUrl(getUploadUrlRequest: FileGetUploadUrlRequest): FileGetUploadUrlResp?
+    fun fileGetUploadUrl(getUploadUrlRequest: FileGetUploadUrlRequest, shareToken: String? = ""): FileGetUploadUrlResp?
 
     /**
      * when all part upload finish, need call this complete file upload
      */
-    fun fileComplete(completeRequest: FileCompleteRequest): FileInfoResp?
+    fun fileComplete(completeRequest: FileCompleteRequest, shareToken: String? = ""): FileInfoResp?
 
     /**
      * download url will timeout, so you can use this get a new download url
      */
-    fun fileGetDownloadUrl(getDownloadUrlRequest: FileGetDownloadUrlRequest): FileGetDownloadUrlResp?
+    fun fileGetDownloadUrl(getDownloadUrlRequest: FileGetDownloadUrlRequest, shareToken: String? = ""): FileGetDownloadUrlResp?
 
     /**
      * get a file detail
@@ -113,23 +113,39 @@ class FileApiImpl : FileApi {
 
 
     @Throws(IOException::class)
-    override fun fileCreate(createRequest: FileCreateRequest): FileCreateResp? {
-        return apiPost(fileCreatePath, createRequest, FileCreateResp())
+    override fun fileCreate(createRequest: FileCreateRequest, shareToken: String?): FileCreateResp? {
+        val headers = mutableMapOf<String, String>()
+        if (!shareToken.isNullOrEmpty()) {
+            headers["x-share-token"] = shareToken
+        }
+        return apiPost(fileCreatePath, createRequest, FileCreateResp(), headers)
     }
 
     @Throws(IOException::class)
-    override fun fileGetUploadUrl(getUploadUrlRequest: FileGetUploadUrlRequest): FileGetUploadUrlResp? {
-        return apiPost(fileUploadUrlPath, getUploadUrlRequest, FileGetUploadUrlResp())
+    override fun fileGetUploadUrl(getUploadUrlRequest: FileGetUploadUrlRequest, shareToken: String?): FileGetUploadUrlResp? {
+        val headers = mutableMapOf<String, String>()
+        if (!shareToken.isNullOrEmpty()) {
+            headers["x-share-token"] = shareToken
+        }
+        return apiPost(fileUploadUrlPath, getUploadUrlRequest, FileGetUploadUrlResp(), headers)
     }
 
     @Throws(IOException::class)
-    override fun fileComplete(completeRequest: FileCompleteRequest): FileInfoResp? {
-        return apiPost(fileCompletePath, completeRequest, FileInfoResp())
+    override fun fileComplete(completeRequest: FileCompleteRequest, shareToken: String?): FileInfoResp? {
+        val headers = mutableMapOf<String, String>()
+        if (!shareToken.isNullOrEmpty()) {
+            headers["x-share-token"] = shareToken
+        }
+        return apiPost(fileCompletePath, completeRequest, FileInfoResp(), headers)
     }
 
     @Throws(IOException::class)
-    override fun fileGetDownloadUrl(getDownloadUrlRequest: FileGetDownloadUrlRequest): FileGetDownloadUrlResp? {
-        return apiPost(getDownloadUrlPath, getDownloadUrlRequest, FileGetDownloadUrlResp())
+    override fun fileGetDownloadUrl(getDownloadUrlRequest: FileGetDownloadUrlRequest, shareToken: String?): FileGetDownloadUrlResp? {
+        val headers = mutableMapOf<String, String>()
+        if (!shareToken.isNullOrEmpty()) {
+            headers["x-share-token"] = shareToken
+        }
+        return apiPost(getDownloadUrlPath, getDownloadUrlRequest, FileGetDownloadUrlResp(), headers)
     }
 
     @Throws(IOException::class)
@@ -172,19 +188,19 @@ class FileApiImpl : FileApi {
         return apiPost(getAsyncTask, getAsyncTaskRequest, AsyncTaskResp())
     }
 
-    private fun <T : BaseResp> apiPost(path: String, body: Any, t: T): T? {
+    private fun <T : BaseResp> apiPost(path: String, body: Any, t: T, headers: MutableMap<String, String> = mutableMapOf()): T? {
         var resp: Response? = null
         try {
-            resp = HTTPUtils.instance.apiPost(host, path, JSON.toJSONString(body))
-            val body: String = resp?.body!!.string()
+            resp = HTTPUtils.instance.apiPost(host, path, JSON.toJSONString(body), headers)
+            val respBody: String = resp?.body!!.string()
             val baseResp: T = if (resp?.code < 300) {
-                if (body.isNullOrEmpty()) {
+                if (respBody.isNullOrEmpty()) {
                     t
                 } else {
-                    JSON.parseObject(body, t::class.java)
+                    JSON.parseObject(respBody, t::class.java)
                 }
             } else {
-                val jsonObject: JSONObject = JSON.parseObject(body)
+                val jsonObject: JSONObject = JSON.parseObject(respBody)
                 t.errorCode = jsonObject.getString("code")
                 t.errorMessage = jsonObject.getString("message")
                 t

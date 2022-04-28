@@ -126,6 +126,7 @@ class SDClient {
             requestInfo.mimeType,
             requestInfo.driveId,
             requestInfo.shareId,
+            requestInfo.shareToken,
             requestInfo.checkNameMode
         )
 

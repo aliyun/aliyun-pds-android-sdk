@@ -29,6 +29,7 @@ class SDUploadTask(
     val mimeType: String?,
     val driveId: String?,
     val shareId: String?,
+    val shareToken: String?,
     var checkNameMode: String?,
 
     ) : SDBaseTask(taskId) {
@@ -51,7 +52,7 @@ class SDUploadTask(
 
     override fun forkTask(): SDTask {
         val newTask = SDUploadTask(
-            taskId, fileName, filePath, fileSize, fileId, parentId, mimeType, driveId, shareId, checkNameMode)
+            taskId, fileName, filePath, fileSize, fileId, parentId, mimeType, driveId, shareId, shareToken, checkNameMode)
         newTask.setOnCompleteListener(completeListener)
         newTask.setOnProgressChangeListener(progressListener)
         return newTask

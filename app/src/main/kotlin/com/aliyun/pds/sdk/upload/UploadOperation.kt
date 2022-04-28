@@ -172,7 +172,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         params.partInfoList = list
         var response: FileCreateResp?
         try {
-            response = uploadApi.createFile(params)
+            response = uploadApi.createFile(params, task.shareToken)
         } catch (e: Exception) {
             if (e is InterruptedIOException && stopped) {
                 return
@@ -348,7 +348,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         params.partInfoList = list
         var resp: FileGetUploadUrlResp? = null
         try {
-            resp = uploadApi.getUploadUrl(params)
+            resp = uploadApi.getUploadUrl(params, task.shareToken)
         } catch (e: Exception) {
             if (e is InterruptedIOException && stopped) {
                 return resp
@@ -384,7 +384,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
 
         var resp: FileInfoResp?
         try {
-            resp = uploadApi.fileComplete(params)
+            resp = uploadApi.fileComplete(params, task.shareToken)
         } catch (e: Exception) {
             if (e is InterruptedIOException && stopped) {
                 return

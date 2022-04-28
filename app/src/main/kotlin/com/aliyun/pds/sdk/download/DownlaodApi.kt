@@ -39,7 +39,7 @@ class DownloadApi {
 
         var resp: FileGetDownloadUrlResp? = null
         try {
-            resp = SDClient.instance.fileApi.fileGetDownloadUrl(request)
+            resp = SDClient.instance.fileApi.fileGetDownloadUrl(request, task.shareToken)
         } catch (e: IOException) {
             e.printStackTrace()
         }

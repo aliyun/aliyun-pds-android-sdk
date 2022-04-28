@@ -24,7 +24,7 @@ import com.aliyun.pds.sdk.upload.UploadInfo
 import com.aliyun.pds.sdk.upload.UploadInfoDao
 
 
-@Database(entities = [DownloadBlockInfo::class, UploadInfo::class], version = 1, exportSchema = false)
+@Database(entities = [DownloadBlockInfo::class, UploadInfo::class], version = 2, exportSchema = false)
 abstract class TransferDB : RoomDatabase() {
     abstract fun downloadBlockInfoDao(): DownloadBlockInfoDao
     abstract fun uploadInfoDao(): UploadInfoDao

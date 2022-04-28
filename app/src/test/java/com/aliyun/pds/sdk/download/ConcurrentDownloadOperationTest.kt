@@ -87,7 +87,7 @@ class ConcurrentDownloadOperationTest {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        val file = File(task.savePath)
+        val file = File(task.filePath)
         val tmpFile = File("${file.path}${File.separator}.${task.taskId}.tmp")
         assert(tmpFile.exists())
     }
@@ -101,14 +101,15 @@ class ConcurrentDownloadOperationTest {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        val file = File(task.savePath)
+        val file = File(task.filePath)
         val tmpFile = File("${file.path}${File.separator}.${task.taskId}.tmp")
         assert(tmpFile.exists())
     }
 
     @Test
     fun blockTest() {
-        var operation = DownloadOperation(mockContext, task, mockDao, config)
+        val check = CRC64Check()
+        var operation = DownloadOperation(mockContext, task, mockDao, config, check)
         try {
             operation.preAction()
         } catch (e: Exception) {
@@ -122,7 +123,7 @@ class ConcurrentDownloadOperationTest {
         assert(operation.blockList[0].end == 1024L)
 
         var task = MockUtils.mockDownloadTask(fileSize = 1024 * 1024 * 20)
-        operation = DownloadOperation(mockContext, task, mockDao, config)
+        operation = DownloadOperation(mockContext, task, mockDao, config, check)
         operation.preAction()
 
 
@@ -132,7 +133,7 @@ class ConcurrentDownloadOperationTest {
         assert(operation.blockList[0].end == miniBlokcSize)
 
         task = MockUtils.mockDownloadTask(fileSize = 1024 * 1024 * 25)
-        operation = DownloadOperation(mockContext, task, mockDao, config)
+        operation = DownloadOperation(mockContext, task, mockDao, config, check)
         operation.preAction()
 
         assert(operation.blockList.size == 2)

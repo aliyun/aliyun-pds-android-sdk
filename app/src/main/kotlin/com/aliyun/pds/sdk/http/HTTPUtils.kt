@@ -50,6 +50,7 @@ class HTTPUtils {
         OkHttpClient.Builder().protocols(Collections.singletonList(Protocol.HTTP_1_1)).
             connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS).build()
+
     private val uploadHttpClient: OkHttpClient = OkHttpClient.Builder().build()
 
     interface OnTransferChangeListener {
@@ -58,23 +59,27 @@ class HTTPUtils {
 
 
     @Throws(IOException::class)
-    fun apiPost(host: String, path: String, params: MutableMap<String, Any?>): Response? {
+    fun apiPost(host: String, path: String, params: MutableMap<String, Any?>, headers: MutableMap<String, String> = mutableMapOf()): Response? {
         val jsonStr = JSON.toJSONString(params)
-        return apiPost(host, path, jsonStr)
+        return apiPost(host, path, jsonStr, headers)
     }
 
     @Throws(IOException::class)
-    fun apiPost(host: String, path: String, body: String): Response? {
+    fun apiPost(host: String, path: String, body: String, headers: MutableMap<String, String> = mutableMapOf()): Response? {
         val config = SDClient.instance.config
         val url = host + path
         val body = body.toRequestBody(jsonContentType)
 
-        val request = Request.Builder()
+        val builder = Request.Builder()
             .url(url)
             .addHeader("Authorization", config.token.accessToken)
             .addHeader("Content-Type", "application/json")
             .addHeader("Accept", "application/json")
-            .post(body)
+        for (item in headers) {
+           builder.addHeader(item.key, item.value)
+        }
+
+        val request = builder.post(body)
             .build()
         return apiHttpClient.newCall(request).execute()
     }

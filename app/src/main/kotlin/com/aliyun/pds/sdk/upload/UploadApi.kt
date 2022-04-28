@@ -23,30 +23,30 @@ import okio.IOException
 
 class UploadApi{
 
-    fun createFile(params: FileCreateRequest): FileCreateResp? {
+    fun createFile(params: FileCreateRequest, shareToken: String?): FileCreateResp? {
         var resp: FileCreateResp? = null
         try {
-            resp = SDClient.instance.fileApi.fileCreate(params)
+            resp = SDClient.instance.fileApi.fileCreate(params, shareToken)
         } catch (e: IOException) {
             e.printStackTrace()
         }
         return resp
     }
 
-    fun getUploadUrl(params: FileGetUploadUrlRequest): FileGetUploadUrlResp? {
+    fun getUploadUrl(params: FileGetUploadUrlRequest, shareToken: String?): FileGetUploadUrlResp? {
         var resp: FileGetUploadUrlResp? = null
         try {
-            resp = SDClient.instance.fileApi.fileGetUploadUrl(params)
+            resp = SDClient.instance.fileApi.fileGetUploadUrl(params, shareToken)
         } catch (e: IOException) {
             e.printStackTrace()
         }
         return resp
     }
 
-    fun fileComplete(params: FileCompleteRequest): FileInfoResp? {
+    fun fileComplete(params: FileCompleteRequest, shareToken: String?): FileInfoResp? {
         var resp: FileInfoResp? = null
         try {
-            resp = SDClient.instance.fileApi.fileComplete(params)
+            resp = SDClient.instance.fileApi.fileComplete(params, shareToken)
         } catch (e: IOException) {
             e.printStackTrace()
         }

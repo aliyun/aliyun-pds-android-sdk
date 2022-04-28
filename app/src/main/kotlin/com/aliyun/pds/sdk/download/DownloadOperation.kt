@@ -39,7 +39,7 @@ open class DownloadOperation(
     protected val task: SDDownloadTask,
     private val blockInfoDao: DownloadBlockInfoDao,
     protected val config: SDConfig,
-    private val resultCheck: ResultCheck,
+    private val resultCheck: ResultCheck = CRC64Check(),
 ) : Operation {
 
     // 分片最小尺寸
