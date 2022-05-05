@@ -18,6 +18,7 @@ package com.aliyun.pds.sdk
 
 import android.content.Context
 import com.aliyun.pds.sdk.api.FileApiImpl
+import com.aliyun.pds.sdk.api.ShareApiImpl
 import com.aliyun.pds.sdk.database.DatabaseHelper
 import com.aliyun.pds.sdk.download.DownloadRequestInfo
 import com.aliyun.pds.sdk.download.SDDownloadTask
@@ -47,6 +48,7 @@ class SDClient {
 
 
     val fileApi = FileApiImpl()
+    val shareApi = ShareApiImpl()
 
     companion object {
         @JvmField
@@ -59,7 +61,6 @@ class SDClient {
         this.appContext = context.applicationContext
         database = DatabaseHelper()
         database.init(appContext, config.databaseName)
-        fileApi.host = config.apiHost
     }
 
     fun updateToken(token: SDToken) {
@@ -94,6 +95,7 @@ class SDClient {
             requestInfo.shareId,
             requestInfo.revisionId,
             requestInfo.shareToken,
+            requestInfo.sharePwd,
             requestInfo.contentHash,
             requestInfo.contentHashName,
             requestInfo.isLivePhoto
@@ -127,6 +129,7 @@ class SDClient {
             requestInfo.driveId,
             requestInfo.shareId,
             requestInfo.shareToken,
+            requestInfo.sharePwd,
             requestInfo.checkNameMode
         )
 

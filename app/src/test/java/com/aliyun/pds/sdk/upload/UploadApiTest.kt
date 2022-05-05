@@ -63,7 +63,7 @@ class UploadApiTest {
         val fileInfo = FileCreateResp()
         fileInfo.driveId = "createFile"
         mockServer(201, JSONObject.toJSONString(fileInfo))
-        val uploadApi = UploadApi()
+        val uploadApi = UploadApi(MockUtils.mockUploadTask())
         var resp = uploadApi.createFile(FileCreateRequest())
         assert(resp?.driveId == "createFile")
 
@@ -93,7 +93,7 @@ class UploadApiTest {
         fileInfo.partInfoList = arrayListOf(part)
 
         mockServer(200, JSONObject.toJSONString(fileInfo))
-        val uploadApi = UploadApi()
+        val uploadApi = UploadApi(MockUtils.mockUploadTask())
         val resp = uploadApi.getUploadUrl(FileGetUploadUrlRequest())
         assert(resp?.code == 200)
         assert(resp?.partInfoList?.get(0)?.partNumber == 1L)
@@ -121,7 +121,7 @@ class UploadApiTest {
         val fileInfo = FileInfoResp()
         fileInfo.driveId = "fileComplete"
         mockServer(200, JSONObject.toJSONString(fileInfo))
-        val uploadApi = UploadApi()
+        val uploadApi = UploadApi(MockUtils.mockUploadTask())
         val resp = uploadApi.fileComplete(FileCompleteRequest())
         assert(resp?.code == 200)
         assert(resp?.driveId == "fileComplete")

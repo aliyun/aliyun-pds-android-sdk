@@ -38,11 +38,27 @@ object MockUtils {
         fileSize: Long = 2000,
         parentId: String = "parentId",
         filePath: String = "pds/filePath",
+        shareId: String = "",
+        shareToken: String = "",
+        sharePwd: String = "",
         mimeType: String = "mp4",
         driveId: String = "driveId",
-        ): SDUploadTask {
+    ): SDUploadTask {
 
-        return SDUploadTask(taskId, fileName, filePath, fileSize, parentId, mimeType, driveId, null)
+        return SDUploadTask(
+            taskId = taskId,
+            fileName,
+            filePath,
+            fileSize,
+            parentId,
+            mimeType,
+            driveId,
+            null,
+            checkNameMode = "auto_rename",
+            shareId = shareId,
+            shareToken = shareToken,
+            sharePwd = sharePwd,
+        )
     }
 
     fun mockDownloadTask(
@@ -52,8 +68,11 @@ object MockUtils {
         fileName: String = "name",
         downloadUrl: String = "url",
         savePath: String = "savePath",
+        shareToken: String = "",
+        sharePwd: String = "",
         driveId: String = "driveId",
         shareId: String = "shareId",
+        reversionId: String = "",
     ): SDDownloadTask {
         return SDDownloadTask(
             taskId,
@@ -63,7 +82,10 @@ object MockUtils {
             downloadUrl,
             savePath,
             driveId,
-            shareId
+            shareId,
+            shareToken = shareToken,
+            sharePwd = sharePwd,
+            revisionId = reversionId
         )
     }
 

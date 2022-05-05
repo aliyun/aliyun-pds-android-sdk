@@ -40,7 +40,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
     private var taskFuture: Future<Any>? = null
     private var stopped = false
 
-    private val uploadApi: UploadApi = UploadApi()
+    private val uploadApi: UploadApi = UploadApi(task)
     private lateinit var uploadInfo: UploadInfo
     private val dao: UploadInfoDao = SDClient.instance.database.transferDB.uploadInfoDao()
 
@@ -172,7 +172,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         params.partInfoList = list
         var response: FileCreateResp?
         try {
-            response = uploadApi.createFile(params, task.shareToken)
+            response = uploadApi.createFile(params)
         } catch (e: Exception) {
             if (e is InterruptedIOException && stopped) {
                 return
@@ -348,7 +348,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         params.partInfoList = list
         var resp: FileGetUploadUrlResp? = null
         try {
-            resp = uploadApi.getUploadUrl(params, task.shareToken)
+            resp = uploadApi.getUploadUrl(params)
         } catch (e: Exception) {
             if (e is InterruptedIOException && stopped) {
                 return resp
@@ -384,7 +384,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
 
         var resp: FileInfoResp?
         try {
-            resp = uploadApi.fileComplete(params, task.shareToken)
+            resp = uploadApi.fileComplete(params)
         } catch (e: Exception) {
             if (e is InterruptedIOException && stopped) {
                 return

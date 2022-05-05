@@ -168,6 +168,9 @@ class LivePhotoDownloadOperation(
             savePath,
             task.driveId,
             task.shareId,
+            task.revisionId,
+            task.shareToken,
+            task.sharePwd,
             contentHash,
             "crc64"
         )

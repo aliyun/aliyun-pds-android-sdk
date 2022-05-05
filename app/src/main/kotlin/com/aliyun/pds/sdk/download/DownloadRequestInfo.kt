@@ -9,6 +9,7 @@ class DownloadRequestInfo(
    val driveId: String,
    val shareId: String? = "",
    val shareToken: String? = "",
+   val sharePwd: String? = "",
    val revisionId: String? = "",
    val contentHash: String? = "",
    val contentHashName: String? = "",

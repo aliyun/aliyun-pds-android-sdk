@@ -18,6 +18,8 @@ package com.aliyun.pds.sdk.api
 
 import com.alibaba.fastjson.JSON
 import com.alibaba.fastjson.JSONObject
+import com.aliyun.pds.sdk.SDClient
+import com.aliyun.pds.sdk.SDConfig
 import com.aliyun.pds.sdk.http.HTTPUtils
 import com.aliyun.pds.sdk.model.*
 import okhttp3.Response
@@ -93,9 +95,6 @@ interface FileApi {
 }
 
 class FileApiImpl : FileApi {
-
-    var host: String = ""
-
 
     private val fileCreatePath = "/v2/file/create"
     private val fileUploadUrlPath = "/v2/file/get_upload_url"
@@ -187,32 +186,33 @@ class FileApiImpl : FileApi {
     override fun getAsyncTask(getAsyncTaskRequest: AsyncTaskRequest): AsyncTaskResp? {
         return apiPost(getAsyncTask, getAsyncTaskRequest, AsyncTaskResp())
     }
+}
 
-    private fun <T : BaseResp> apiPost(path: String, body: Any, t: T, headers: MutableMap<String, String> = mutableMapOf()): T? {
-        var resp: Response? = null
-        try {
-            resp = HTTPUtils.instance.apiPost(host, path, JSON.toJSONString(body), headers)
-            val respBody: String = resp?.body!!.string()
-            val baseResp: T = if (resp?.code < 300) {
-                if (respBody.isNullOrEmpty()) {
-                    t
-                } else {
-                    JSON.parseObject(respBody, t::class.java)
-                }
-            } else {
-                val jsonObject: JSONObject = JSON.parseObject(respBody)
-                t.errorCode = jsonObject.getString("code")
-                t.errorMessage = jsonObject.getString("message")
+fun <T : BaseResp> apiPost(path: String, body: Any, t: T, headers: MutableMap<String, String> = mutableMapOf()): T? {
+    var resp: Response? = null
+    try {
+        val host = SDClient.instance.config.apiHost;
+        resp = HTTPUtils.instance.apiPost(host, path, JSON.toJSONString(body), headers)
+        val respBody: String = resp?.body!!.string()
+        val baseResp: T = if (resp?.code < 300) {
+            if (respBody.isNullOrEmpty()) {
                 t
+            } else {
+                JSON.parseObject(respBody, t::class.java)
             }
-            baseResp.code = resp.code
-            return baseResp
-        } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
-        } finally {
-           resp?.close()
+        } else {
+            val jsonObject: JSONObject = JSON.parseObject(respBody)
+            t.errorCode = jsonObject.getString("code")
+            t.errorMessage = jsonObject.getString("message")
+            t
         }
-        return null
+        baseResp.code = resp.code
+        return baseResp
+    } catch (e: Exception) {
+        e.printStackTrace()
+        throw e
+    } finally {
+        resp?.close()
     }
+    return null
 }

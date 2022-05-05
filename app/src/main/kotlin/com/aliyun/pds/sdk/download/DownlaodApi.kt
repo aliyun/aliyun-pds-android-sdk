@@ -19,6 +19,7 @@ package com.aliyun.pds.sdk.download
 import com.aliyun.pds.sdk.SDClient
 import com.aliyun.pds.sdk.model.FileGetDownloadUrlRequest
 import com.aliyun.pds.sdk.model.FileGetDownloadUrlResp
+import com.aliyun.pds.sdk.model.GetShareTokenRequest
 import okio.IOException
 
 class DownloadApi {
@@ -40,6 +41,15 @@ class DownloadApi {
         var resp: FileGetDownloadUrlResp? = null
         try {
             resp = SDClient.instance.fileApi.fileGetDownloadUrl(request, task.shareToken)
+
+            // 分享token 过期情况
+            if (401 == resp?.code && !task.shareToken.isNullOrEmpty() && !task.shareId.isNullOrEmpty()) {
+                val shareTokenRequest = GetShareTokenRequest(task.shareId, task.sharePwd)
+                val shareTokenResp = SDClient.instance.shareApi.getShareToken(shareTokenRequest)
+                if (shareTokenResp?.code == 200 && !shareTokenResp.shareToken.isNullOrEmpty()) {
+                    resp = SDClient.instance.fileApi.fileGetDownloadUrl(request, task.shareToken)
+                }
+            }
         } catch (e: IOException) {
             e.printStackTrace()
         }
