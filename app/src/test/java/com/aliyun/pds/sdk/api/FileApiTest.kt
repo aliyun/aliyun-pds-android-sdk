@@ -47,7 +47,6 @@ class FileApiTest {
 
         Mockito.`when`(mockContext.applicationContext).thenReturn(mockContext)
         SDClient.instance.init(mockContext, MockUtils.mockSDConfig(apiHost = mockHost()))
-        fileApi.host = mockHost()
     }
 
     private fun mockHost(): String {

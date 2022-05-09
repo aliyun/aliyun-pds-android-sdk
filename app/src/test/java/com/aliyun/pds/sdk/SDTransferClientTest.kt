@@ -17,6 +17,8 @@
 package com.aliyun.pds.sdk
 
 import android.content.Context
+import com.aliyun.pds.sdk.download.DownloadRequestInfo
+import com.aliyun.pds.sdk.upload.UploadRequestInfo
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -41,15 +43,8 @@ class SDTransferClientTest {
 
     @Test
     fun createDownloadTask() {
-        val task = SDClient.instance.createDownloadTask(
-            "1",
-            "url",
-            "fileId",
-            "driveId",
-            "name",
-            1000,
-            "./path",
-            "shareId")
+        val downloadInfo = DownloadRequestInfo.Builder().downloadUrl("url").build()
+        val task = SDClient.instance.createDownloadTask("1", downloadInfo)
 
         assert(task.downloadUrl == "url")
 
@@ -69,15 +64,10 @@ class SDTransferClientTest {
     @Test
     fun createUploadTask() {
 
-        val task = SDClient.instance.createUploadTask(
-            "2",
-            "name",
-            "path",
-            1000,
-            "123",
-            "image",
-            "id",
-            "id")
+        val uploadInfo = UploadRequestInfo.Builder()
+            .driveId("id")
+            .build()
+        val task = SDClient.instance.createUploadTask("2", uploadInfo)
         assert(task.driveId == "id")
 
         task.pause()

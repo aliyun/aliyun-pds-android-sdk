@@ -37,6 +37,7 @@ enum class SDTransferError {
     PermissionDenied,
     Server,
     RemoteFileNotExist,
+    ShareLinkCancelled,
 }
 
 class SDClient {

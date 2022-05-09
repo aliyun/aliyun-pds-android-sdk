@@ -51,6 +51,9 @@ fun covertFromException(exception: Exception?): SDErrorInfo {
         is SDServerException -> {
             return SDErrorInfo(SDTransferError.Server, "server code is ${exception.code}, msg: ${exception.message}")
         }
+        is ShareLinkCancelledException -> {
+            return SDErrorInfo(SDTransferError.ShareLinkCancelled, "share link is cancelled")
+        }
         is SDUnknownException -> return SDErrorInfo(SDTransferError.Unknown, "${exception.message}")
         else -> return SDErrorInfo(SDTransferError.Unknown, "${exception.message}")
     }

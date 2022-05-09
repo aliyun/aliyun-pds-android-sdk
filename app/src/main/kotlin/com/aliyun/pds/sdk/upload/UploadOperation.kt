@@ -229,6 +229,9 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             "InvalidParameter.SizeExceed" == errorCode -> {
                 throw SDSizeExceedException("file size too big")
             }
+            400 == httpCode && "ShareLink.Cancelled" == errorCode -> {
+               throw ShareLinkCancelledException("share link is cancelled")
+            }
             else -> {
                 throw SDServerException(httpCode,
                     "errorCode: $errorCode msg: $errorMessage")
