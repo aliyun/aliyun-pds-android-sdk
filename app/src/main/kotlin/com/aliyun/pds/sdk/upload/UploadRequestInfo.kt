@@ -53,7 +53,7 @@ class UploadRequestInfo(builder: Builder) {
             fileSize = size
         }
 
-        fun fileId(fileId: String): Builder = apply {
+        fun fileId(fileId: String?): Builder = apply {
             this.fileId = fileId
         }
 
@@ -61,27 +61,27 @@ class UploadRequestInfo(builder: Builder) {
             this.parentId = parentId
         }
 
-        fun driveId(driverId: String): Builder = apply {
+        fun driveId(driverId: String?): Builder = apply {
             this.driveId = driverId
         }
 
-        fun shareId(shareId: String): Builder = apply {
+        fun shareId(shareId: String?): Builder = apply {
             this.shareId = shareId
         }
 
-        fun shareToken(shareToken: String): Builder = apply {
+        fun shareToken(shareToken: String?): Builder = apply {
             this.shareToken = shareToken
         }
 
-        fun sharePwd(sharePwd: String): Builder = apply {
+        fun sharePwd(sharePwd: String?): Builder = apply {
             this.sharePwd = sharePwd
         }
 
-        fun mimeType(mimeType: String): Builder = apply {
+        fun mimeType(mimeType: String?): Builder = apply {
             this.mimeType = mimeType
         }
 
-        fun checkNameMode(checkNameMode: String): Builder = apply {
+        fun checkNameMode(checkNameMode: String?): Builder = apply {
             this.checkNameMode = checkNameMode
         } 
 

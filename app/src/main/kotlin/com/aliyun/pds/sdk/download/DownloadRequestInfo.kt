@@ -73,27 +73,27 @@ class DownloadRequestInfo(builder: Builder) {
          this.driveId = driveId
       }
 
-      fun shareId(shareId: String) : Builder = apply {
+      fun shareId(shareId: String?) : Builder = apply {
          this.shareId = shareId
       }
 
-      fun shareToken(shareToken: String) : Builder = apply {
+      fun shareToken(shareToken: String?) : Builder = apply {
          this.shareToken = shareToken
       }
 
-      fun sharePwd(sharePwd: String) : Builder = apply {
+      fun sharePwd(sharePwd: String?) : Builder = apply {
          this.sharePwd = sharePwd
       }
 
-      fun revisionId(revisionId: String) : Builder = apply {
+      fun revisionId(revisionId: String?) : Builder = apply {
          this.revisionId = revisionId
       }
 
-      fun contentHash(contentHash: String) : Builder = apply {
+      fun contentHash(contentHash: String?) : Builder = apply {
          this.contentHash = contentHash
       }
 
-      fun contentHashName(contentHashName: String) : Builder = apply {
+      fun contentHashName(contentHashName: String?) : Builder = apply {
          this.contentHashName = contentHashName
       }
 
