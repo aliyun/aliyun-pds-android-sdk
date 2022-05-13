@@ -20,6 +20,7 @@ data class SDConfig(
     var token: SDToken,
     val downloadUrlExpiredTime: Long,
     var apiHost: String,
+    val userAgent: String? = null,
     val maxRetryCount: Int = 3,
     var canFastUpload: Boolean = true,
     val databaseName: String = "pds_transfer.db",

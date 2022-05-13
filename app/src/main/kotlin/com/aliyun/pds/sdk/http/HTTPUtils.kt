@@ -75,6 +75,10 @@ class HTTPUtils {
             .addHeader("Authorization", config.token.accessToken)
             .addHeader("Content-Type", "application/json")
             .addHeader("Accept", "application/json")
+
+        if (config.userAgent != null) {
+            builder.addHeader("User-Agent", config.userAgent)
+        }
         for (item in headers) {
            builder.addHeader(item.key, item.value)
         }
