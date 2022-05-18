@@ -22,25 +22,6 @@ SDClient.instance.init(this, config)
 ```
 
 
-- [PDS Android SDK](#PDS Android SDK)
-  -[当前主要功能](#当前主要功能)
-  -[集成](#集成)
-  -[初始化](#初始化)
-  -[下载任务](#下载任务)
-  -[上传任务](#上传任务)
-  -[文件操作接口](#文件操作接口)
-    -[列举文件或文件夹](#列举文件或文件夹)
-    -[文件搜索](#文件搜索)
-    -[创建文件或者文件夹](#创建文件或者文件夹)
-    -[获取文件或文件夹信息](#获取文件或文件夹信息)
-    -[拷贝文件或文件夹](#拷贝文件或文件夹)
-    -[移动文件或文件夹](#移动文件或文件夹)
-    -[更新文件或文件夹信息](#更新文件或文件夹信息)
-    -[删除文件或文件夹](#删除文件或文件夹)
-    -[其它](#其它)
-  -[demo配置](#demo配置)
-
-
 ## 下载任务
 
 **注意任务的进度和状态回调都在子线程,若要更新UI请自行切换到主线程**
@@ -49,39 +30,33 @@ SDClient.instance.init(this, config)
 
 ```kotlin
 // 初始化下载信息
-val requestInfo = DownloadRequestInfo(
-            // 下载url 
-			url,
-            // fileId
-			fileId,
-            // 文件名
-			fileName,
-            // 文件保存路径
-			filePath,
-            // 文件大小
-			fileSize,
-            // 用户driveId
-			driveId,
-            // 文件来自分享(不涉及分享业务可不传
-			shareId,
-            // 文件来自分享(不涉及分享业务可不传
-			shareToken,
-            // 历史版本相关id(不涉及可不传)
-			revisionId,
-            // 效验hash值(可不传)
-			contentHash,
-            // hash格式( "sha1", "crc64")(可不传)
-			contentHashName,
-			// 是否动态图片(可不传)
-			isLivePhoto
-	)
+
+val downloadInfo = DownloadRequestInfo.Builder()
+    .downloadUrl(url)
+    .fileId(fileId)
+    .fileName(fileName)
+    // 文件保存路径
+    .filePath(dir.path)
+    .fileSize(fileSize)
+    .driveId(driveId)
+    // 文件来自分享(不涉及分享业务可不传
+    .shareId(shareId)
+    .shareToken(shareToken)
+    .sharePwd(sharePwd)
+    // 历史版本相关(不涉及可不传)
+    .revisionId(revisionId)
+	// hash 效验值
+	.contentHash(hash)
+	// hash 效验算法名 当前只支持 crc64
+	.contentHashName("crc64")
+    .build()
 
 // 创建任务, 
 val task = SDClient.instance.createDownloadTask(
     // taskId
     taskId,
 	// 下载信息
-	requestInfo,
+	downloadInfo,
 	// 完成监听（成功，失败都会回调
 	completeListener,
 	// 下载进度监听
@@ -110,33 +85,26 @@ task.restart()
 
 ```kotlin
 // 初始化上传信息
-val requestInfo = UploadRequestInfo(
-            // 文件名
-			fileName,
-            // 文件路径
-			path,
-            // 文件大小
-			length,
-            // 文件父目录id
-			parentId,
-            // 用户 driveId
-			driveId,
-			// 文件id(历史版本相关不设计可不传
-			fileId,
-			// 分享Id(不涉及分享业务可不传
-			shareId,
-			// 文件类型(可不填
-			mimeType,
-			// 重命名规则(可不传
-			checkNameMode
-        )
+
+val uploadInfo = UploadRequestInfo.Builder()
+    .fileName("edmDrive")
+    .filePath(file.absolutePath)
+    .fileSize(file.length())
+    .parentId(parentId)
+    .driveId(driveId)
+    .mimeType(mimeType)
+	//上传到的文件夹来自分享(不涉及不填)
+	.shareId(shareId)
+	.shareToken(shareToken)
+	.sharePwd(sharePwd)
+    .build()
 
 // 创建任务
 val task = SDClient.instance.createUploadTask(
     // 任务id
     taskId,
 	// 上传信息
-	requestInfo,
+	uploadInfo,
 	// 完成监听
 	completeListener,
 	// 进度监听

@@ -53,18 +53,27 @@ class DownloadActivity : BaseActivity() {
                 dir.mkdirs()
             }
 
-            val requestInfo = DownloadRequestInfo(
-                url,
-                fileId,
-                fileName,
-                downloadFilePath,
-                fileSize,
-                driveId,
-            )
+//            val requestInfo = DownloadRequestInfo(
+//                url,
+//                fileId,
+//                fileName,
+//                downloadFilePath,
+//                fileSize,
+//                driveId,
+//            )
+
+            val downloadInfo = DownloadRequestInfo.Builder()
+                .downloadUrl(url)
+                .fileId(fileId)
+                .fileName(fileName)
+                .filePath(downloadFilePath)
+                .fileSize(fileSize)
+                .driveId(driveId)
+                .build()
 
             val task = SDClient.instance.createDownloadTask(
                 "1" ,
-                requestInfo
+                downloadInfo
             )
             taskList.addTask(task)
         }
@@ -83,18 +92,18 @@ class DownloadActivity : BaseActivity() {
                 dir.mkdirs()
             }
 
-            val requestInfo = DownloadRequestInfo(
-                url,
-                fileId,
-                fileName,
-                dir.path,
-                fileSize,
-                driveId,
-            )
+            val downloadInfo = DownloadRequestInfo.Builder()
+                .downloadUrl(url)
+                .fileId(fileId)
+                .fileName(fileName)
+                .filePath(dir.path)
+                .fileSize(fileSize)
+                .driveId(driveId)
+                .build()
 
             val task = SDClient.instance.createDownloadTask(
                 "2",
-                requestInfo
+                downloadInfo
             )
 
             taskList.addTask(task)

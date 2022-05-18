@@ -109,13 +109,15 @@ object TransferUtil {
     }
 
     private fun getUploadTask(act: Activity, file: File): SDBaseTask {
-        val requestInfo = UploadRequestInfo(
-            file.name,
-            file.path,
-            file.length(),
-            "root",
-            Config.driveId
-        )
+
+        val requestInfo = UploadRequestInfo.Builder()
+            .fileName(file.name)
+            .filePath(file.path)
+            .fileSize(file.length())
+            .parentId("root")
+            .driveId(Config.driveId)
+            .build()
+
 
         return SDClient.instance.createUploadTask(
             getTaskId(act), requestInfo
@@ -123,13 +125,17 @@ object TransferUtil {
     }
 
     private fun getDownloadTask(act: Activity, item: FileInfoResp, downloadFilePath: String): SDBaseTask {
-        val requestInfo = DownloadRequestInfo(
-            item.downloadUrl!!,
-            item.fileId!!,
-            item.name!!,
-            downloadFilePath,
-            item.fileSize!!,
-            Config.driveId)
+
+        val requestInfo = DownloadRequestInfo.Builder()
+            .downloadUrl(item.downloadUrl!!)
+            .fileId(item.fileId!!)
+            .fileName(item.name!!)
+            .filePath(downloadFilePath)
+            .fileSize(item.fileSize!!)
+            .driveId(Config.driveId)
+            .build()
+
+
 
         return SDClient.instance.createDownloadTask(
             getTaskId(act), requestInfo
@@ -156,7 +162,7 @@ object TransferUtil {
                     return if (transferType == TRANSFER_DOWNLOAD) "下载成功" else "上传成功"
                 }
                 SDTransferError.Unknown -> {
-                    return "位置错误"
+                    return "未知错误"
                 }
                 SDTransferError.Network -> {
                     return "网络错误"
@@ -178,6 +184,9 @@ object TransferUtil {
                 }
                 SDTransferError.RemoteFileNotExist -> {
                     return "文件不存在"
+                }
+                else -> {
+                    return "未知错误"
                 }
             }
         }

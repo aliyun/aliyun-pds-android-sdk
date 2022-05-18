@@ -58,18 +58,20 @@ class UploadActivity : AppCompatActivity() {
             val mimeType = "mimeType"
 //            val shareId = "shareId"
 
-            val requestInfo = UploadRequestInfo(
-                "edmDrive",
-                file.absolutePath,
-                file.length(),
-                parentId,
-                driveId,
-                mimeType = mimeType
-            )
+
+            val uploadInfo = UploadRequestInfo.Builder()
+                .fileName("edmDrive")
+                .filePath(file.absolutePath)
+                .fileSize(file.length())
+                .parentId(parentId)
+                .driveId(driveId)
+                .mimeType(mimeType)
+                .build()
+
 
             val task = SDClient.instance.createUploadTask(
                 "3",
-                requestInfo
+                uploadInfo
             )
             taskList.addTask(task)
         }
