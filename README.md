@@ -8,7 +8,7 @@
 ## 集成
 
 ```kotlin
-implementation 'com.aliyun.pds:android-sdk:0.0.2'
+implementation 'com.aliyun.pds:android-sdk:0.1.0'
 ```
 
 
@@ -45,22 +45,22 @@ val downloadInfo = DownloadRequestInfo.Builder()
     .sharePwd(sharePwd)
     // 历史版本相关(不涉及可不传)
     .revisionId(revisionId)
-	// hash 效验值
-	.contentHash(hash)
-	// hash 效验算法名 当前只支持 crc64
-	.contentHashName("crc64")
+    // hash 效验值
+    .contentHash(hash)
+    // hash 效验算法名 当前只支持 crc64
+    .contentHashName("crc64")
     .build()
 
 // 创建任务, 
 val task = SDClient.instance.createDownloadTask(
     // taskId
     taskId,
-	// 下载信息
-	downloadInfo,
-	// 完成监听（成功，失败都会回调
-	completeListener,
-	// 下载进度监听
-	progressListener, 			
+    // 下载信息
+    downloadInfo,
+    // 完成监听（成功，失败都会回调
+    completeListener,
+    // 下载进度监听
+    progressListener, 			
 )
 
 // 暂停任务，只有运行中的任务可以暂停
@@ -93,22 +93,22 @@ val uploadInfo = UploadRequestInfo.Builder()
     .parentId(parentId)
     .driveId(driveId)
     .mimeType(mimeType)
-	//上传到的文件夹来自分享(不涉及不填)
-	.shareId(shareId)
-	.shareToken(shareToken)
-	.sharePwd(sharePwd)
+    //上传到的文件夹来自分享(不涉及不填)
+    .shareId(shareId)
+    .shareToken(shareToken)
+    .sharePwd(sharePwd)
     .build()
 
 // 创建任务
 val task = SDClient.instance.createUploadTask(
     // 任务id
     taskId,
-	// 上传信息
-	uploadInfo,
-	// 完成监听
-	completeListener,
-	// 进度监听
-	progressListener, 
+    // 上传信息
+    uploadInfo,
+    // 完成监听
+    completeListener,
+    // 进度监听
+    progressListener, 
 )
 
 // 暂停任务
