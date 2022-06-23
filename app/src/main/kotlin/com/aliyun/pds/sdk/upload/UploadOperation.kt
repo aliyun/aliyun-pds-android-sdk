@@ -233,8 +233,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
                throw ShareLinkCancelledException("share link is cancelled")
             }
             else -> {
-                throw SDServerException(httpCode,
-                    "errorCode: $errorCode msg: $errorMessage")
+                throw SDServerException(httpCode, errorCode, errorMessage)
             }
         }
     }
@@ -247,7 +246,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
                     blockList[i].url = fileInfo.partInfoList!![i].uploadUrl
                 }
             } else {
-                throw SDServerException(200, "get empty upload url")
+                throw SDServerException(200, "EmptyUploadUrl", "get empty upload url")
             }
         }
 
@@ -294,7 +293,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             } else if (403 == resp.code) {
                 val fileInfo = getUploadUrl()
                 if (null == fileInfo?.partInfoList) {
-                    val e = SDServerException(200, "part info list is null")
+                    val e = SDServerException(200, "EmptyUploadUrl", "part info list is null")
                     e.printStackTrace()
                     throw e
                 }

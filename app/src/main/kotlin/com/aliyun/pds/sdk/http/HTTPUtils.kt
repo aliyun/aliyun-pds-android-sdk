@@ -120,7 +120,7 @@ class HTTPUtils {
             if (403 == response.code) {
                 throw DownloadUrl403Exception("download url timeout")
             } else {
-                throw SDServerException(response.code, response.message)
+                throw SDServerException(response.code, response.message, response.body.toString())
             }
         } else {
 
@@ -155,6 +155,7 @@ class HTTPUtils {
                     randomAccessFile?.close()
                     inputStream?.close()
                     if (null != response) {
+                        response.body?.close();
                         response.close()
                     }
                 } catch (e: Exception) {

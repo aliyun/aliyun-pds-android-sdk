@@ -27,9 +27,9 @@ data class SDConfig(
     val isDebug: Boolean = false
 ) {
     companion object {
-        // 10M
-        const val miniBlock = 1024 * 1024 * 10L
-        const val maxBlockCount = 100
+        // 4M
+        const val miniBlock = 1024 * 1024 * 4L
+        const val maxBlockCount = 1000
         const val uploadDir = "pds/upload"
         const val downloadDir = "pds/download"
     }

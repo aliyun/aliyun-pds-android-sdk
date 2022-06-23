@@ -403,7 +403,7 @@ open class DownloadOperation(
                 if ("NotFound.File" == resp.errorCode) {
                     throw RemoteFileNotFoundException("file not found")
                 }
-                throw SDServerException(resp.code, resp.errorCode.toString())
+                throw SDServerException(resp.code, resp.errorCode, resp.errorMessage)
             }
         }
     }
