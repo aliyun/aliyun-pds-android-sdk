@@ -16,21 +16,148 @@
 
 package com.aliyun.pds.sdk
 
-data class SDConfig(
-    var token: SDToken,
-    val downloadUrlExpiredTime: Long,
-    var apiHost: String,
-    val userAgent: String? = null,
-    val maxRetryCount: Int = 3,
-    var canFastUpload: Boolean = true,
-    val databaseName: String = "pds_transfer.db",
-    val isDebug: Boolean = false
-) {
-    companion object {
-        // 4M
-        const val miniBlock = 1024 * 1024 * 4L
-        const val maxBlockCount = 1000
-        const val uploadDir = "pds/upload"
-        const val downloadDir = "pds/download"
+import java.util.concurrent.TimeUnit
+
+class SDConfig {
+
+    var token: SDToken
+    var apiHost: String
+    var canFastUpload: Boolean
+    var downloadUrlExpiredTime: Long
+    var userAgent: String?
+    var maxRetryCount: Int
+    var isDebug: Boolean
+    var databaseName: String
+
+    var downloadBlockSize = 1024 * 1024 * 10L
+    var uploadBlockSize = 1024 * 1024 * 4L
+    var connectTimeout = 15L
+    var connectTimeUnnit = TimeUnit.SECONDS
+    var readTimeout = 60L
+    var readTimeUnit = TimeUnit.SECONDS
+    var writeTimeout = 60L
+    var writeTimeUnit = TimeUnit.SECONDS
+
+    val downloadMaxBlockCount = 100
+    val uploadMaxBlockCount = 1000
+    val uploadDir = "pds/upload"
+    val downloadDir = "pds/download"
+
+    @Deprecated("recommended use 'SDConfig.Builder(token, apiHost, downloadUrlExpiredTime).build()'")
+    constructor(
+        token: SDToken,
+        downloadUrlExpiredTime: Long,
+        apiHost: String,
+        userAgent: String? = null,
+        maxRetryCount: Int = 3,
+        canFastUpload: Boolean = true,
+        databaseName: String = "pds_transfer.db",
+        isDebug: Boolean = false
+    ) {
+        this.token = token
+        this.apiHost = apiHost
+        this.canFastUpload = canFastUpload
+        this.downloadUrlExpiredTime = downloadUrlExpiredTime
+        this.userAgent = userAgent
+        this.maxRetryCount = maxRetryCount
+        this.canFastUpload = canFastUpload
+        this.databaseName = databaseName
+        this.isDebug = isDebug
     }
+
+    constructor(builder: Builder) {
+        this.token = builder.token
+        this.apiHost = builder.apiHost
+        this.canFastUpload = builder.canFastUpload
+        this.downloadUrlExpiredTime = builder.downloadUrlExpiredTime
+        this.userAgent = builder.userAgent
+        this.maxRetryCount = builder.maxRetryCount
+        this.isDebug = builder.isDebug
+        this.databaseName = builder.databaseName
+
+        this.downloadBlockSize = builder.downloadBlockSize
+        this.uploadBlockSize = builder.uploadBlockSize
+        this.connectTimeout = builder.connectTimeout
+        this.connectTimeUnnit = builder.connectTimeUnnit
+        this.readTimeout = builder.readTimeout
+        this.readTimeUnit = builder.readTimeUnit
+        this.writeTimeout = builder.writeTimeout
+        this.writeTimeUnit = builder.writeTimeUnit
+    }
+
+    class Builder(val token: SDToken, val apiHost: String, val downloadUrlExpiredTime: Long) {
+        var canFastUpload = true
+        var userAgent = ""
+        var maxRetryCount = 3
+        var isDebug = false
+        var databaseName = "pds_transfer.db"
+
+        val downloadMiniBlockSize = 1024 * 1024 * 1L
+        val uploadMiniBlockSize = 1024 * 1024 * 1L
+        var downloadBlockSize = 1024 * 1024 * 10L
+        var uploadBlockSize = 1024 * 1024 * 4L
+        var connectTimeout = 15L
+        var connectTimeUnnit = TimeUnit.SECONDS
+        var readTimeout = 60L
+        var readTimeUnit = TimeUnit.SECONDS
+        var writeTimeout = 60L
+        var writeTimeUnit = TimeUnit.SECONDS
+
+        fun canFastUpload(canFastUpload: Boolean): Builder = apply {
+            this.canFastUpload = canFastUpload
+        }
+
+        fun userAgent(userAgent: String): Builder = apply {
+            this.userAgent = userAgent
+        }
+
+        fun maxRetryCount(maxRetryCount: Int): Builder = apply {
+            this.maxRetryCount = maxRetryCount
+        }
+
+        fun isDebug(isDebug: Boolean): Builder = apply {
+            this.isDebug = isDebug
+        }
+
+        fun databaseName(databaseName: String): Builder = apply {
+            this.databaseName = databaseName
+        }
+
+        fun downloadBlockSize(blockSize: Long): Builder = apply {
+            downloadBlockSize = if (blockSize < downloadMiniBlockSize) downloadMiniBlockSize else blockSize
+        }
+
+        fun uploadBlockSize(blockSize: Long): Builder = apply {
+            uploadBlockSize = if (blockSize < uploadMiniBlockSize) uploadMiniBlockSize else blockSize
+        }
+
+        fun connectTimeout(timeout: Long): Builder = apply {
+            connectTimeout = timeout
+        }
+
+        fun connectTimeUnnit(timeUnit: TimeUnit): Builder = apply {
+            connectTimeUnnit = timeUnit
+        }
+
+        fun readTimeout(timeout: Long): Builder = apply {
+            readTimeout = timeout
+        }
+
+        fun readTimeUnit(timeUnit: TimeUnit): Builder = apply {
+            readTimeUnit = timeUnit
+        }
+
+        fun writeTimeout(timeout: Long): Builder = apply {
+            readTimeout = timeout
+        }
+
+        fun writeTimeUnit(timeUnit: TimeUnit): Builder = apply {
+            readTimeUnit = timeUnit
+        }
+
+        fun build(): SDConfig {
+            return SDConfig(this)
+        }
+    }
+
 }

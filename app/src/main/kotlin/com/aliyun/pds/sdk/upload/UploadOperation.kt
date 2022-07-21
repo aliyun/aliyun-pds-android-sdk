@@ -36,6 +36,9 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
 
     var currentSize: Long = 0
 
+    private val miniBlockSize = SDClient.instance.config.uploadBlockSize
+    private val maxBlockCount = SDClient.instance.config.uploadMaxBlockCount
+
     private var progressLastUpdate: Long = 0
     private var taskFuture: Future<Any>? = null
     private var stopped = false
@@ -94,11 +97,11 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             uploadInfo.id = id
         }
 
-        var blockCount: Int = (task.fileSize / SDConfig.miniBlock).toInt()
+        var blockCount: Int = (task.fileSize / miniBlockSize).toInt()
         if (0 == blockCount) {
             blockCount = 1
-        } else if (blockCount >= SDConfig.maxBlockCount) {
-            blockCount = SDConfig.maxBlockCount
+        } else if (blockCount >= maxBlockCount) {
+            blockCount = maxBlockCount
         }
         val blockSize = task.fileSize / blockCount
         var remainder = 0L

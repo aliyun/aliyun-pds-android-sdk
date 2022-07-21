@@ -26,7 +26,6 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.lang.Exception
-import java.util.concurrent.TimeUnit
 import okio.BufferedSink
 
 import okhttp3.OkHttpClient
@@ -48,8 +47,16 @@ class HTTPUtils {
     private val apiHttpClient: OkHttpClient = OkHttpClient.Builder().build()
     private val downloadHttpClient: OkHttpClient =
         OkHttpClient.Builder().protocols(Collections.singletonList(Protocol.HTTP_1_1)).
-            connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS).build()
+            connectTimeout(
+                SDClient.instance.config.connectTimeout,
+                SDClient.instance.config.connectTimeUnnit
+            ).readTimeout(
+                SDClient.instance.config.readTimeout,
+                SDClient.instance.config.readTimeUnit
+            ).writeTimeout(
+                SDClient.instance.config.writeTimeout,
+                SDClient.instance.config.writeTimeUnit
+            ).build()
 
     private val uploadHttpClient: OkHttpClient = OkHttpClient.Builder().build()
 
@@ -77,7 +84,7 @@ class HTTPUtils {
             .addHeader("Accept", "application/json")
 
         if (config.userAgent != null) {
-            builder.addHeader("User-Agent", config.userAgent)
+            builder.addHeader("User-Agent", config.userAgent!!)
         }
         for (item in headers) {
            builder.addHeader(item.key, item.value)

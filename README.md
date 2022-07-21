@@ -15,9 +15,23 @@ implementation 'com.aliyun.pds:android-sdk:0.1.0'
 ## 初始化
 
 ```kotlin
-val token = SDToken("you access token")  // 这个通用流程是你们登入自己的账号系统后获取，后端使用 PDS 平台申请的 appKey & appSecret 换取 token 返回给客户端
-val apiHost = "you api host"   // 请在PDS控制台获取你的 api host
-val config = SDConfig(token, 3600, apiHost)
+val token = SDToken("you access token") // 这个通用流程是你们登入自己的账号系统后获取，后端使用 PDS 平台申请的 appKey & appSecret 换取 token 返回给客户端
+val apiHost = "you api host"            // 请在PDS控制台获取你的 api host
+// val config = SDConfig(token, 3600, apiHost) 旧版本方法，已废弃，不建议使用
+val config = SDConfig.Builder(token, apiHost, 3600)
+                .canFastUpload()        // 是否支持妙传，默认true (选填)
+                .userAgent()            // (选填)
+                .maxRetryCount()        // 最大重试次数,默认3  (选填)
+                .isDebug()              // 是否开启调试模式,默认false (选填)
+                .downloadBlockSize()    // 下载分片大小,默认10M (选填)
+                .uploadBlockSize()      // 上传分片大小,默认4M  (选填)
+                .connectTimeout()       // 建立网络连接超时时间设置,默认15s (选填)
+                .connectTimeUnnit()     // 建立网络连接超时时间单位设置,默认TimeUnit.SECONDS  (选填)
+                .readTimeout()          // 网络连接响应超时时间设置,默认60s (选填)
+                .readTimeUnit()         // 网络连接响应超时时间单位设置,默认TimeUnit.SECONDS  (选填)
+                .writeTimeout()         // 网络传输响应超时时间设置,默认60s (选填)
+                .writeTimeUnit()        // 网络传输响应超时时间单位设置,默认TimeUnit.SECONDS  (选填)
+                .build()
 SDClient.instance.init(this, config)
 ```
 

@@ -132,7 +132,7 @@ class FileUtils {
     fun removeUploadTmp(taskId: String) {
 
         val dir =
-            File(SDClient.instance.appContext.filesDir, SDConfig.uploadDir)
+            File(SDClient.instance.appContext.filesDir, SDClient.instance.config.uploadDir)
         val tmpFile = File(dir, taskId)
         if (tmpFile.exists()) {
             tmpFile.delete()
