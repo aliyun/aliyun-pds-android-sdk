@@ -103,7 +103,7 @@ class UploadOperationTest {
 
         // init block with file
         val blockInfoDir =
-            File(SDClient.instance.appContext.filesDir, SDConfig.uploadDir)
+            File(SDClient.instance.appContext.filesDir, SDClient.instance.config.uploadDir)
         val blockInfoFile = File(blockInfoDir, task.taskId)
 
         blockInfoFile.sink().buffer().writeInt(10).flush()
@@ -119,7 +119,7 @@ class UploadOperationTest {
         val operation = UploadOperation(task)
 
         val blockInfoDir =
-            File(SDClient.instance.appContext.filesDir, SDConfig.uploadDir)
+            File(SDClient.instance.appContext.filesDir, SDClient.instance.config.uploadDir)
         val blockInfoFile = File(blockInfoDir, task.taskId)
 
         blockInfoFile.sink().buffer().writeString("10", Charset.forName("utf-8")).flush()

@@ -50,7 +50,15 @@ class MainActivity : AppCompatActivity() {
         val dir = File(file, "PDSDemo")
         dir.mkdirs()
 
-        val config = SDConfig(token, 3600, apiHost, canFastUpload = false)
+        val config = SDConfig.Builder(token, apiHost, 3600)
+                            .maxRetryCount(3)
+                            .canFastUpload(true)
+                            .isDebug(true)
+                            .downloadBlockSize(1024 * 1024 * 5L)
+                            .uploadBlockSize(1024 * 1024 * 5L)
+                            .connectTimeout(30L)
+                            .readTimeout(30L)
+                            .build()
         SDClient.instance.init(this, config)
 
         download.setOnClickListener {

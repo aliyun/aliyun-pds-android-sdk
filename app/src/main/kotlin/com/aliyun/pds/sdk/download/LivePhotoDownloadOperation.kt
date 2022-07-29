@@ -18,6 +18,7 @@ package com.aliyun.pds.sdk.download
 
 import android.content.Context
 import com.aliyun.pds.sdk.*
+import com.aliyun.pds.sdk.exception.SDNetworkException
 import com.aliyun.pds.sdk.utils.FileUtils
 import java.io.File
 
@@ -41,7 +42,7 @@ class LivePhotoDownloadOperation(
             task.completeListener?.onComplete(
                 task.taskId,
                 SDFileMeta(task.fileId, task.fileName, task.filePath),
-                SDErrorInfo(SDTransferError.Network, "get download url error")
+                SDErrorInfo(SDTransferError.Network, "get download url error", SDNetworkException("no download url"))
             )
             return
         } else {
@@ -129,7 +130,7 @@ class LivePhotoDownloadOperation(
                 if (imageFile.exists() && imageFile.length() == imageTask.fileSize) {
                     val movFile = File(movTask.filePath)
                     if (movFile.exists() && movFile.length() == movTask.fileSize) {
-                        task.completeListener?.onComplete(task.taskId, SDFileMeta(task.fileId, task.fileName, task.filePath), SDErrorInfo(SDTransferError.None, "success"))
+                        task.completeListener?.onComplete(task.taskId, SDFileMeta(task.fileId, task.fileName, task.filePath), SDErrorInfo(SDTransferError.None, "success", null))
                     } else {
                         movOperation?.execute()
                     }

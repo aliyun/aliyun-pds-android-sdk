@@ -18,6 +18,7 @@ package com.aliyun.pds.sdk.exception
 
 import java.io.IOException
 
-class SDServerException(code: Int, message: String) : IOException(message) {
+class SDServerException(code: Int, errorCode: String?, message: String?) : IOException(message) {
     val code = code
+    val erroCode = errorCode
 }

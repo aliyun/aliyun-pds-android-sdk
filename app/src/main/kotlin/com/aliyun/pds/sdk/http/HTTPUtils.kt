@@ -26,7 +26,6 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.lang.Exception
-import java.util.concurrent.TimeUnit
 import okio.BufferedSink
 
 import okhttp3.OkHttpClient
@@ -34,6 +33,7 @@ import okio.IOException
 
 import java.io.*
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 class HTTPUtils {
@@ -48,8 +48,16 @@ class HTTPUtils {
     private val apiHttpClient: OkHttpClient = OkHttpClient.Builder().build()
     private val downloadHttpClient: OkHttpClient =
         OkHttpClient.Builder().protocols(Collections.singletonList(Protocol.HTTP_1_1)).
-            connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS).build()
+            connectTimeout(
+                SDClient.instance.config.connectTimeout,
+                TimeUnit.SECONDS
+            ).readTimeout(
+                SDClient.instance.config.readTimeout,
+                TimeUnit.SECONDS
+            ).writeTimeout(
+                SDClient.instance.config.writeTimeout,
+            TimeUnit.SECONDS
+            ).build()
 
     private val uploadHttpClient: OkHttpClient = OkHttpClient.Builder().build()
 
@@ -68,7 +76,7 @@ class HTTPUtils {
     fun apiPost(host: String, path: String, body: String, headers: MutableMap<String, String> = mutableMapOf()): Response? {
         val config = SDClient.instance.config
         val url = host + path
-        val body = body.toRequestBody(jsonContentType)
+        val requestBody = body.toRequestBody(jsonContentType)
 
         val builder = Request.Builder()
             .url(url)
@@ -77,13 +85,13 @@ class HTTPUtils {
             .addHeader("Accept", "application/json")
 
         if (config.userAgent != null) {
-            builder.addHeader("User-Agent", config.userAgent)
+            builder.addHeader("User-Agent", config.userAgent!!)
         }
         for (item in headers) {
            builder.addHeader(item.key, item.value)
         }
 
-        val request = builder.post(body)
+        val request = builder.post(requestBody)
             .build()
         return apiHttpClient.newCall(request).execute()
     }
@@ -105,7 +113,7 @@ class HTTPUtils {
             .url(url)
             .build()
 
-        var response: Response? = null
+        var response: Response?
         try {
             response = downloadHttpClient.newCall(request).execute()
         } catch (e: IOException) {
@@ -120,7 +128,7 @@ class HTTPUtils {
             if (403 == response.code) {
                 throw DownloadUrl403Exception("download url timeout")
             } else {
-                throw SDServerException(response.code, response.message)
+                throw SDServerException(response.code, response.message, response.body.toString())
             }
         } else {
 
@@ -155,6 +163,7 @@ class HTTPUtils {
                     randomAccessFile?.close()
                     inputStream?.close()
                     if (null != response) {
+                        response.body?.close();
                         response.close()
                     }
                 } catch (e: Exception) {

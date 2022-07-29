@@ -17,7 +17,6 @@
 package com.aliyun.pds.sdk.download
 
 import android.content.Context
-import android.util.Log
 import com.aliyun.pds.sdk.*
 import com.aliyun.pds.sdk.exception.*
 import com.aliyun.pds.sdk.http.HTTPUtils
@@ -27,7 +26,6 @@ import com.aliyun.pds.sdk.utils.FileUtils
 import com.aliyun.pds.sdk.utils.LogUtils
 import okhttp3.internal.toImmutableMap
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.RandomAccessFile
 import java.lang.Exception
@@ -43,10 +41,10 @@ open class DownloadOperation(
 ) : Operation {
 
     // 分片最小尺寸
-    private val miniBlockSize: Int = 1024 * 1024 * 10
+    private val miniBlockSize = config.downloadBlockSize
 
     // 最大分片个数
-    private val maxBlockCount: Int = 100
+    private val maxBlockCount = config.downloadMaxBlockCount
 
     private lateinit var tmpFile: File
     lateinit var blockList: MutableList<DownloadBlockInfo>
@@ -403,7 +401,7 @@ open class DownloadOperation(
                 if ("NotFound.File" == resp.errorCode) {
                     throw RemoteFileNotFoundException("file not found")
                 }
-                throw SDServerException(resp.code, resp.errorCode.toString())
+                throw SDServerException(resp.code, resp.errorCode, resp.errorMessage)
             }
         }
     }

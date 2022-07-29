@@ -23,12 +23,15 @@ object MockUtils {
 
 
     fun mockSDConfig(apiHost: String = "apiHost"): SDConfig {
-        return SDConfig(
-            SDToken("token", 3600),
-            3600,
-            apiHost,
-            3,
-        )
+        return SDConfig.Builder(SDToken("token", 3600), apiHost, 3600)
+                    .maxRetryCount(3)
+                    .canFastUpload(true)
+                    .isDebug(true)
+                    .downloadBlockSize(1024 * 1024 * 5L)
+                    .uploadBlockSize(1024 * 1024 * 5L)
+                    .connectTimeout(30L)
+                    .readTimeout(30L)
+                    .build()
     }
 
     fun mockUploadTask(
