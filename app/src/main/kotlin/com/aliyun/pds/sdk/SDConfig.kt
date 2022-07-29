@@ -32,13 +32,10 @@ class SDConfig {
     var downloadBlockSize = 1024 * 1024 * 10L
     var uploadBlockSize = 1024 * 1024 * 4L
     var connectTimeout = 15L
-    var connectTimeUnnit = TimeUnit.SECONDS
     var readTimeout = 60L
-    var readTimeUnit = TimeUnit.SECONDS
     var writeTimeout = 60L
-    var writeTimeUnit = TimeUnit.SECONDS
 
-    val downloadMaxBlockCount = 100
+    val downloadMaxBlockCount = 1000
     val uploadMaxBlockCount = 1000
     val uploadDir = "pds/upload"
     val downloadDir = "pds/download"
@@ -78,11 +75,8 @@ class SDConfig {
         this.downloadBlockSize = builder.downloadBlockSize
         this.uploadBlockSize = builder.uploadBlockSize
         this.connectTimeout = builder.connectTimeout
-        this.connectTimeUnnit = builder.connectTimeUnnit
         this.readTimeout = builder.readTimeout
-        this.readTimeUnit = builder.readTimeUnit
         this.writeTimeout = builder.writeTimeout
-        this.writeTimeUnit = builder.writeTimeUnit
     }
 
     class Builder(val token: SDToken, val apiHost: String, val downloadUrlExpiredTime: Long) {
@@ -92,16 +86,13 @@ class SDConfig {
         var isDebug = false
         var databaseName = "pds_transfer.db"
 
-        val downloadMiniBlockSize = 1024 * 1024 * 1L
-        val uploadMiniBlockSize = 1024 * 1024 * 1L
+        private val downloadMiniBlockSize = 1024 * 1024 * 1L
+        private val uploadMiniBlockSize = 1024 * 1024 * 1L
         var downloadBlockSize = 1024 * 1024 * 10L
         var uploadBlockSize = 1024 * 1024 * 4L
         var connectTimeout = 15L
-        var connectTimeUnnit = TimeUnit.SECONDS
         var readTimeout = 60L
-        var readTimeUnit = TimeUnit.SECONDS
         var writeTimeout = 60L
-        var writeTimeUnit = TimeUnit.SECONDS
 
         fun canFastUpload(canFastUpload: Boolean): Builder = apply {
             this.canFastUpload = canFastUpload
@@ -135,24 +126,8 @@ class SDConfig {
             connectTimeout = timeout
         }
 
-        fun connectTimeUnnit(timeUnit: TimeUnit): Builder = apply {
-            connectTimeUnnit = timeUnit
-        }
-
         fun readTimeout(timeout: Long): Builder = apply {
             readTimeout = timeout
-        }
-
-        fun readTimeUnit(timeUnit: TimeUnit): Builder = apply {
-            readTimeUnit = timeUnit
-        }
-
-        fun writeTimeout(timeout: Long): Builder = apply {
-            readTimeout = timeout
-        }
-
-        fun writeTimeUnit(timeUnit: TimeUnit): Builder = apply {
-            readTimeUnit = timeUnit
         }
 
         fun build(): SDConfig {

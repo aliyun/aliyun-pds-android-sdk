@@ -33,6 +33,7 @@ import okio.IOException
 
 import java.io.*
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 class HTTPUtils {
@@ -49,13 +50,13 @@ class HTTPUtils {
         OkHttpClient.Builder().protocols(Collections.singletonList(Protocol.HTTP_1_1)).
             connectTimeout(
                 SDClient.instance.config.connectTimeout,
-                SDClient.instance.config.connectTimeUnnit
+                TimeUnit.SECONDS
             ).readTimeout(
                 SDClient.instance.config.readTimeout,
-                SDClient.instance.config.readTimeUnit
+                TimeUnit.SECONDS
             ).writeTimeout(
                 SDClient.instance.config.writeTimeout,
-                SDClient.instance.config.writeTimeUnit
+            TimeUnit.SECONDS
             ).build()
 
     private val uploadHttpClient: OkHttpClient = OkHttpClient.Builder().build()
@@ -75,7 +76,7 @@ class HTTPUtils {
     fun apiPost(host: String, path: String, body: String, headers: MutableMap<String, String> = mutableMapOf()): Response? {
         val config = SDClient.instance.config
         val url = host + path
-        val body = body.toRequestBody(jsonContentType)
+        val requestBody = body.toRequestBody(jsonContentType)
 
         val builder = Request.Builder()
             .url(url)
@@ -90,7 +91,7 @@ class HTTPUtils {
            builder.addHeader(item.key, item.value)
         }
 
-        val request = builder.post(body)
+        val request = builder.post(requestBody)
             .build()
         return apiHttpClient.newCall(request).execute()
     }
@@ -112,7 +113,7 @@ class HTTPUtils {
             .url(url)
             .build()
 
-        var response: Response? = null
+        var response: Response?
         try {
             response = downloadHttpClient.newCall(request).execute()
         } catch (e: IOException) {
