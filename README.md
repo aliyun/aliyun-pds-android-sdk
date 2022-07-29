@@ -8,7 +8,7 @@
 ## 集成
 
 ```kotlin
-implementation 'com.aliyun.pds:android-sdk:0.1.0'
+implementation 'com.aliyun.pds:android-sdk:0.1.1'
 ```
 
 
