@@ -26,6 +26,9 @@ class SDErrorInfo(
     val exception: Exception?,
 ) {
 
+    override fun toString(): String {
+        return "code is $code, message is $message, exception is ${exception.toString()}"
+    }
 }
 
 fun covertFromException(exception: Exception?): SDErrorInfo {
