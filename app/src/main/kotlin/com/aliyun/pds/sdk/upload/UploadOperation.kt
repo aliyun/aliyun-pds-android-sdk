@@ -73,6 +73,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
 
     override fun cancel() {
         stop()
+        blockList.clear()
         dao.delete(uploadInfo)
     }
 
@@ -109,7 +110,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             remainder = task.fileSize % blockSize
         }
 
-        if (task.currentBlock > 0) {
+        if (task.currentBlock >= 0) {
             currentSize = task.currentBlock * blockSize
         }
 
