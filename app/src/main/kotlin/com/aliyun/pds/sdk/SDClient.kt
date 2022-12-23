@@ -38,6 +38,8 @@ enum class SDTransferError {
     Server,
     RemoteFileNotExist,
     ShareLinkCancelled,
+    TmpFileNotExist,
+    PathRuleError
 }
 
 class SDClient {

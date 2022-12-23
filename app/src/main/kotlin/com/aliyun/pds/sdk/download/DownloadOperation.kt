@@ -236,7 +236,13 @@ open class DownloadOperation(
         if (!tmpDir.exists()) {
             tmpDir.mkdirs()
         }
-        tmpFile = File("${tmpDir.path}${File.separator}.${task.taskId}_${task.fileId}.tmp")
+
+        val filePath = "${tmpDir.path}${File.separator}"
+        if (filePath.contains(Regex("[\"*:<>?|\\\\]"))) {
+            throw SDPathRuleErrorException("path error")
+        }
+
+        tmpFile = File("$filePath.${task.taskId}_${task.fileId}.tmp")
         if (!tmpFile.exists()) {
             // if name is too long resize to 64
             task.fileName = FileUtils.instance.renameByLength(64, task.fileName)
@@ -376,6 +382,11 @@ open class DownloadOperation(
         if (0L == task.fileSize) {
             return
         }
+
+        if (!tmpFile.exists()) {
+            throw SDTmpFileNotExistException("tmp file not exist")
+        }
+
         if (!resultCheck.check(tmpFile, task)) {
             throw SDUnknownException("checkSum error")
         }
