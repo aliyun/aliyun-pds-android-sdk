@@ -59,6 +59,8 @@ fun covertFromException(exception: Exception?): SDErrorInfo {
             return SDErrorInfo(SDTransferError.ShareLinkCancelled, "share link is cancelled", exception)
         }
         is SDUnknownException -> return SDErrorInfo(SDTransferError.Unknown, "${exception.message}", exception)
+        is SDTmpFileNotExistException -> return SDErrorInfo(SDTransferError.TmpFileNotExist, "tmp file not exist", exception)
+        is SDPathRuleErrorException -> return SDErrorInfo(SDTransferError.PathRuleError, "downlaod path rule error", exception)
         else -> return SDErrorInfo(SDTransferError.Unknown, "${exception.message}", exception)
     }
 }

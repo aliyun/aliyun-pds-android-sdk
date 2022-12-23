@@ -279,9 +279,8 @@ class FileActivity : BaseActivity(), OnItemClickListener {
     }
 
     override fun download(item: FileInfoResp) {
-        val file = this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        val file = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
         val downloadFilePath = File(file, item.name!!).path
-
         TransferUtil.startDownload(this, item, downloadFilePath)
     }
 
