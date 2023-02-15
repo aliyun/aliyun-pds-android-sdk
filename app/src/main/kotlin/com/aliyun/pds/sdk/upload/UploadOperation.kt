@@ -419,7 +419,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         }
         var errorInfo = covertFromException(e)
         task.completeListener?.onComplete(task.taskId,
-            SDFileMeta(task.fileId, task.fileName, task.uploadId), errorInfo
+            SDFileMeta(task.fileId, task.fileName, task.filePath, task.uploadId), errorInfo
         )
         stop()
     }
