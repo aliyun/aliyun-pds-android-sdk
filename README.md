@@ -10,6 +10,7 @@
 ```kotlin
 implementation 'com.aliyun.pds:android-sdk:0.1.1'
 ```
+ ** 支持的SDK最低版本为21 **
 
 
 ## 初始化
@@ -19,16 +20,16 @@ val token = SDToken("you access token") // 这个通用流程是你们登入自�
 val apiHost = "you api host"            // 请在PDS控制台获取你的 api host
 // val config = SDConfig(token, 3600, apiHost) 旧版本方法，已废弃，不建议使用
 val config = SDConfig.Builder(token, apiHost, 3600)
-                .canFastUpload()        // 是否支持妙传，默认true (选填)
-                .userAgent()            // (选填)
-                .maxRetryCount()        // 最大重试次数,默认3  (选填)
-                .isDebug()              // 是否开启调试模式,默认false (选填)
-                .downloadBlockSize()    // 下载分片大小,默认10M (选填)
-                .uploadBlockSize()      // 上传分片大小,默认4M  (选填)
-                .connectTimeout()       // 建立网络连接超时时间设置,默认15s (选填)
-                .readTimeout()          // 网络连接响应超时时间设置,默认60s (选填)
-                .writeTimeout()         // 网络传输响应超时时间设置,默认60s (选填)
-                .build()
+    .canFastUpload()        // 是否支持妙传，默认true (选填)
+    .userAgent()            // (选填)
+    .maxRetryCount()        // 最大重试次数,默认3  (选填)
+    .isDebug()              // 是否开启调试模式,默认false (选填)
+    .downloadBlockSize()    // 下载分片大小,默认10M (选填)
+    .uploadBlockSize()      // 上传分片大小,默认4M  (选填)
+    .connectTimeout()       // 建立网络连接超时时间设置,默认15s (选填)
+    .readTimeout()          // 网络连接响应超时时间设置,默认60s (选填)
+    .writeTimeout()         // 网络传输响应超时时间设置,默认60s (选填)
+    .build()
 SDClient.instance.init(this, config)
 ```
 
@@ -41,37 +42,27 @@ SDClient.instance.init(this, config)
 
 ```kotlin
 // 初始化下载信息
-
 val downloadInfo = DownloadRequestInfo.Builder()
     .downloadUrl(url)
+    .driveId(driveId)
     .fileId(fileId)
     .fileName(fileName)
-    // 文件保存路径
-    .filePath(dir.path)
     .fileSize(fileSize)
-    .driveId(driveId)
-    // 文件来自分享(不涉及分享业务可不传
-    .shareId(shareId)
-    .shareToken(shareToken)
-    .sharePwd(sharePwd)
-    // 历史版本相关(不涉及可不传)
-    .revisionId(revisionId)
-    // hash 效验值
-    .contentHash(hash)
-    // hash 效验算法名 当前只支持 crc64
-    .contentHashName("crc64")
+    .filePath(dir.path)             // 文件保存路径
+    .shareId(shareId)               // 文件来自分享：id(不涉及分享业务可不传)
+    .shareToken(shareToken)         // 文件来自分享：token(不涉及分享业务可不传)
+    .sharePwd(sharePwd)             // 文件来自分享：pwd(不涉及分享业务可不传)
+    .revisionId(revisionId)         // 历史版本相关：id(下载文件的历史版本时，需要传入，不涉及可不传)
+    .contentHash(hash)              // hash 效验值
+    .contentHashName("crc64")       // hash 效验算法名 当前只支持 crc64
     .build()
 
 // 创建任务, 
 val task = SDClient.instance.createDownloadTask(
-    // taskId
-    taskId,
-    // 下载信息
-    downloadInfo,
-    // 完成监听（成功，失败都会回调
-    completeListener,
-    // 下载进度监听
-    progressListener, 			
+    taskId,                 // taskId
+    downloadInfo,           // 下载信息
+    completeListener,       // 下载完成监听（成功，失败都会回调。失败时会返回错误信息)
+    progressListener        // 下载进度监听	
 )
 
 // 暂停任务，只有运行中的任务可以暂停
@@ -96,7 +87,6 @@ task.restart()
 
 ```kotlin
 // 初始化上传信息
-
 val uploadInfo = UploadRequestInfo.Builder()
     .fileName("edmDrive")
     .filePath(file.absolutePath)
@@ -104,22 +94,23 @@ val uploadInfo = UploadRequestInfo.Builder()
     .parentId(parentId)
     .driveId(driveId)
     .mimeType(mimeType)
-    //上传到的文件夹来自分享(不涉及不填)
-    .shareId(shareId)
-    .shareToken(shareToken)
-    .sharePwd(sharePwd)
+    .fileId(fileId)                     // 文件id，覆盖上传时必填
+    .checkNameMode(checkNameMode)       // 同名文件处理模式，默认为"auto_rename"，具体参数说明如下：
+                                        // auto_rename: 当发现同名文件是，云端自动重命名，默认为追加当前时间点，如 xxx _20060102_150405;
+                                        // ignore: 允许同名文件;
+                                        // refuse：当云端存在同名文件时，拒绝创建新文件，直接提示上传成功
+
+    .shareId(shareId)                   //上传到的文件夹来自分享：id(不涉及可不传)
+    .shareToken(shareToken)             //上传到的文件夹来自分享：token(不涉及可不传)
+    .sharePwd(sharePwd)                 //上传到的文件夹来自分享：pwd(不涉及可不传)
     .build()
 
 // 创建任务
 val task = SDClient.instance.createUploadTask(
-    // 任务id
-    taskId,
-    // 上传信息
-    uploadInfo,
-    // 完成监听
-    completeListener,
-    // 进度监听
-    progressListener, 
+    taskId,                 // 任务id
+    uploadInfo,             // 上传信息
+    completeListener,       // 上传完成监听（成功，失败都会回调。失败时会返回错误信息)
+    progressListener        // 上传进度监听
 )
 
 // 暂停任务
@@ -133,10 +124,26 @@ task.cancel()
 
 ```
 
+## 文件上传/下载错误信息错误码说明
 
-## 文件操作接口 
+```kotlin
+SDTransferError.Unknown // 未知错误
+SDTransferError.Network // 网络错误
+SDTransferError.FileNotExist // 文件没有找到
+SDTransferError.SpaceNotEnough // 空间不足
+SDTransferError.Server // 服务器错误
+SDTransferError.TmpFileNotExist // 下载临时文件不存在
+SDTransferError.PathRuleError // 下载路径规则错误
+SDTransferError.SizeExceed // 文件过大
+SDTransferError.PermissionDenied // 没有权限
+SDTransferError.RemoteFileNotExist // 找不到远程文件
+SDTransferError.ShareLinkCancelled // 分享连接已取消
+```
+> 注：错误类型为SDTransferError.Server时，错误信息中会包含errorCode，可对照[错误码文档](https://next.api.aliyun.com/document/pds/2022-03-01/errorCode)确定具体错误原因。
 
-具体请求参数和返回值参考[官方API文档](https://help.aliyun.com/document_detail/175927.html)
+## 文件操作接口
+
+具体请求参数和返回值参考[官方API文档](https://help.aliyun.com/document_detail/440389.html)
 
 通过 `SDClient.fileApi` 拿到 `fileApi` 对象后调用如下方法访问对应 api
 > 注：请求示例中的参数仅为基础参数，其它参数请参考官方API文档
@@ -208,7 +215,7 @@ copyRequest.toParentId = "root"             // 拷贝目标文件夹的fileId(ro
 fun fileMove(fileMoveRequest: FileMoveRequest): FileMoveResp?
 
 // FileMoveRequest 示例
-val moveRequest = FileMoveRequest() 
+val moveRequest = FileMoveRequest()
 moveRequest.driveId = ""                    // 文件的driveId
 moveRequest.fileId = ""                     // 文件的fileId
 moveRequest.toDriveId = ""                  // 移动目标文件夹的driveId

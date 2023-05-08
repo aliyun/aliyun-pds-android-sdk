@@ -20,12 +20,13 @@
 package com.aliyun.pds.sdk
 
 import com.aliyun.pds.sdk.thread.ThreadPoolUtils
+import java.util.concurrent.Future
 
 interface SDTask {
 
     fun start()
 
-    fun restart(forceClean: Boolean = false) : SDTask
+    fun restart(forceClean: Boolean = false): SDTask
 
     fun pause()
 
@@ -40,7 +41,7 @@ interface SDTask {
     fun setOnProgressChangeListener(listener: OnProgressListener?)
 }
 
-abstract class SDBaseTask(val taskId: String): SDTask {
+abstract class SDBaseTask(val taskId: String) : SDTask {
 
     var progressListener: OnProgressListener? = null
     var completeListener: OnCompleteListener? = null
@@ -48,11 +49,12 @@ abstract class SDBaseTask(val taskId: String): SDTask {
     enum class TaskState {
         RUNNING, PAUSED, FINISH
     }
+
     var state = TaskState.RUNNING
     protected var operation: Operation? = null
 
     override fun restart(forceClean: Boolean): SDTask {
-        val task =  forkTask()
+        val task = forkTask()
         if (forceClean) {
             cancel()
         }
@@ -65,28 +67,28 @@ abstract class SDBaseTask(val taskId: String): SDTask {
             return
         }
         ThreadPoolUtils.instance.taskHandlerThread.submit {
-            state = TaskState.PAUSED
             operation?.stop()
+            this.state = TaskState.PAUSED
         }
     }
 
     override fun resume() {
-        if (state != TaskState.PAUSED) {
+        if (state == TaskState.RUNNING) {
             return
         }
         execute()
     }
 
     override fun cancel() {
-        state = TaskState.FINISH
         ThreadPoolUtils.instance.taskHandlerThread.submit {
             operation?.cancel()
+            this.state = TaskState.FINISH
         }
     }
 
     protected fun execute() {
-        state = TaskState.RUNNING
         ThreadPoolUtils.instance.taskHandlerThread.submit {
+            this.state = TaskState.RUNNING
             operation?.execute()
         }
     }
@@ -99,4 +101,9 @@ abstract class SDBaseTask(val taskId: String): SDTask {
         progressListener = listener
     }
 
+    fun updateTaskState(toState: TaskState) : Future<*> {
+        return ThreadPoolUtils.instance.taskHandlerThread.submit {
+            this.state = toState
+        }
+    }
 }

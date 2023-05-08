@@ -35,13 +35,13 @@ class SDUploadTask(
 
     ) : SDBaseTask(taskId) {
 
-    lateinit var sha1: String
+    var sha1: String = ""
     var uploadId: String? = null
     var currentBlock: Int = 0
 //    var fileId: String? = null
 
     enum class UploadState {
-        FILE_CREATE, UPLOADING, COMPLETE
+        FILE_CREATE, UPLOADING, COMPLETE, FINISH
     }
 
     var uploadState = UploadState.FILE_CREATE

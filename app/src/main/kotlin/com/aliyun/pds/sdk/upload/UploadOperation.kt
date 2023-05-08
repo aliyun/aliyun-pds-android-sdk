@@ -29,6 +29,7 @@ import java.io.IOException
 import java.io.InterruptedIOException
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 class UploadOperation(private val task: SDUploadTask) : Operation {
 
@@ -125,7 +126,9 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
 
     fun uploadAction() {
 
-        while (SDBaseTask.TaskState.RUNNING == task.state && !stopped) {
+        while (SDBaseTask.TaskState.RUNNING == task.state
+            && task.uploadState != SDUploadTask.UploadState.FINISH
+            && !stopped )  {
             when {
                 SDUploadTask.UploadState.FILE_CREATE == task.uploadState -> {
                     createFile(true)
@@ -135,7 +138,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
                 }
                 SDUploadTask.UploadState.COMPLETE == task.uploadState -> {
                     uploadComplete()
-                    task.state = SDBaseTask.TaskState.FINISH
+                    task.uploadState = SDUploadTask.UploadState.FINISH
                 }
             }
         }
@@ -158,7 +161,9 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         if (needPreHash) {
             params.preHash = FileUtils.instance.fileRule1kSA1(task.filePath)
         } else {
-            task.sha1 = FileUtils.instance.fileSHA1(task.filePath)
+            if (task.sha1.isEmpty()) {
+                task.sha1 = FileUtils.instance.fileSHA1(task.filePath)
+            }
             params.contentHash = task.sha1
             params.contentHashName = "sha1"
         }
@@ -192,11 +197,11 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
                 task.uploadId = response.uploadId
                 if (response.rapidUpload || "available" == response.status) {
                     // 秒传
-                    task.uploadState = SDUploadTask.UploadState.COMPLETE
+                    task.uploadState = SDUploadTask.UploadState.FINISH
                     currentSize = task.fileSize
                     task.progressListener?.onProgressChange(currentSize)
                     saveUploadInfo()
-                    task.state = SDBaseTask.TaskState.FINISH
+//                    task.state = SDBaseTask.TaskState.FINISH
                 } else {
                     task.uploadState = SDUploadTask.UploadState.UPLOADING
                     saveUploadInfo()
@@ -418,6 +423,9 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             return
         }
         var errorInfo = covertFromException(e)
+        val future = task.updateTaskState(SDBaseTask.TaskState.FINISH)
+        // wait task success
+        future.get(2, TimeUnit.SECONDS)
         task.completeListener?.onComplete(task.taskId,
             SDFileMeta(task.fileId, task.fileName, task.filePath, task.uploadId), errorInfo
         )
