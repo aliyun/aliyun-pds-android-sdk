@@ -16,6 +16,7 @@
 
 package com.aliyun.pds.sdk.upload
 
+import android.util.Log
 import com.aliyun.pds.sdk.*
 import com.aliyun.pds.sdk.exception.*
 import com.aliyun.pds.sdk.http.HTTPUtils
@@ -267,7 +268,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             }
 
         }
-        while (task.currentBlock < blockList.size) {
+        while (task.currentBlock < blockList.size && !stopped) {
             val block = blockList[task.currentBlock]
             val url = block.url
             var resp: Response? = null
@@ -422,7 +423,10 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         if (stopped) {
             return
         }
-        var errorInfo = covertFromException(e)
+        if (e == null && task.uploadState != SDUploadTask.UploadState.FINISH) {
+            return
+        }
+        val errorInfo = covertFromException(e)
         val future = task.updateTaskState(SDBaseTask.TaskState.FINISH)
         // wait task success
         future.get(2, TimeUnit.SECONDS)
