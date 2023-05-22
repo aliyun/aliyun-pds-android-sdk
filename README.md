@@ -8,7 +8,7 @@
 ## 集成
 
 ```kotlin
-implementation 'com.aliyun.pds:android-sdk:0.1.1'
+implementation 'com.aliyun.pds:android-sdk:0.1.3'
 ```
  ** 支持的SDK最低版本为21 **
 
