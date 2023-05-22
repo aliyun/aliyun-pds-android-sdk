@@ -63,20 +63,23 @@ abstract class SDBaseTask(val taskId: String) : SDTask {
     }
 
     override fun pause() {
-        if (state != TaskState.RUNNING) {
-            return
-        }
         ThreadPoolUtils.instance.taskHandlerThread.submit {
+            if (state != TaskState.RUNNING) {
+                return@submit
+            }
             operation?.stop()
             this.state = TaskState.PAUSED
         }
     }
 
     override fun resume() {
-        if (state == TaskState.RUNNING) {
-            return
+        ThreadPoolUtils.instance.taskHandlerThread.submit {
+            if (state == TaskState.RUNNING) {
+                return@submit
+            }
+            this.state = TaskState.RUNNING
+            operation?.execute()
         }
-        execute()
     }
 
     override fun cancel() {
