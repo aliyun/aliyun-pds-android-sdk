@@ -16,16 +16,11 @@
 
 package com.aliyun.pds.sdk.upload
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity
 class UploadInfo {
-    @PrimaryKey(autoGenerate = true)
-    var id: Long = 0
+    var id = 0
     var taskId: String = ""
-    var currentBlock: Int = 0
+    var currentBlock = 0
     var fileId: String? = null
     var uploadId: String = ""
-    var uploadState: Int = 0
+    var uploadState = 0
 }

@@ -33,22 +33,16 @@ enum class SDTransferError {
     Network,
     FileNotExist,
     SpaceNotEnough,
-    SizeExceed,
-    PermissionDenied,
     Server,
-    RemoteFileNotExist,
-    ShareLinkCancelled,
     TmpFileNotExist,
     PathRuleError
 }
 
 class SDClient {
 
-
     lateinit var config: SDConfig
     lateinit var appContext: Context
-    lateinit var database: DatabaseHelper
-
+    internal lateinit var database: DatabaseHelper
 
     val fileApi = FileApiImpl()
     val shareApi = ShareApiImpl()
@@ -62,8 +56,7 @@ class SDClient {
     fun init(context: Context, config: SDConfig) {
         this.config = config
         this.appContext = context.applicationContext
-        database = DatabaseHelper()
-        database.init(appContext, config.databaseName)
+        database = DatabaseHelper(appContext, config.databaseName, 3)
     }
 
     fun updateToken(token: SDToken) {
@@ -81,7 +74,7 @@ class SDClient {
         requestInfo: DownloadRequestInfo,
         completeListener: OnCompleteListener? = null,
         progressListener: OnProgressListener? = null,
-    ): SDDownloadTask {
+    ): SDTask {
         var tid = taskId
         if (tid.isEmpty()) {
             val timestamp = System.currentTimeMillis()
@@ -101,7 +94,6 @@ class SDClient {
             requestInfo.sharePwd,
             requestInfo.contentHash,
             requestInfo.contentHashName,
-            requestInfo.isLivePhoto
         )
 
         task.setOnCompleteListener(completeListener)
@@ -115,7 +107,7 @@ class SDClient {
         requestInfo: UploadRequestInfo,
         completeListener: OnCompleteListener? = null,
         progressListener: OnProgressListener? = null,
-    ): SDUploadTask {
+    ): SDTask {
         val timestamp = System.currentTimeMillis()
         var tid = taskId
         if (tid.isEmpty()) {

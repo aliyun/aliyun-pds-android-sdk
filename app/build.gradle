@@ -21,6 +21,8 @@ plugins {
     id 'jacoco'
 }
 apply plugin: 'kotlin-android'
+apply from: "./maven-publish.gradle"
+
 
 allprojects {
     jacoco {
@@ -58,6 +60,7 @@ android {
     defaultConfig {
         minSdk 21
         targetSdk 30
+        compileSdk 31
         versionCode 1
         versionName "1.0"
 
@@ -109,10 +112,4 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     testImplementation('com.alibaba.testable:testable-all:0.6.8')
     testAnnotationProcessor('com.alibaba.testable:testable-processor:0.6.8')
-
-    implementation 'androidx.room:room-runtime:2.3.0'
-    kapt "org.xerial:sqlite-jdbc:3.34.0"
-    annotationProcessor 'androidx.room:room-compiler:2.3.0'
-    kapt 'androidx.room:room-compiler:2.3.0'
-
 }

@@ -16,22 +16,66 @@
 
 package com.aliyun.pds.sdk.download
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Update
+import android.annotation.SuppressLint
+import android.content.ContentValues
+import android.database.sqlite.SQLiteDatabase
+import com.aliyun.pds.sdk.database.TransferDBModel
 
-@Dao
-interface DownloadBlockInfoDao {
-   @Query("SELECT * FROM downloadblockinfo WHERE taskId = :taskId")
-   fun getAll(taskId : String) : List<DownloadBlockInfo>
+class DownloadBlockInfoDao(private val db: SQLiteDatabase) {
 
-   @Insert
-   fun insert(info: List<DownloadBlockInfo>) : List<Long>
+   @SuppressLint("Range")
+   fun getAll(taskId : String) : List<DownloadBlockInfo> {
+      var infos: MutableList<DownloadBlockInfo> = ArrayList()
+      val cursor = db.query(TransferDBModel.DownloadDB.table_name, null, "${TransferDBModel.DownloadDB.taskId}=$taskId", null, null, null, null)
+      if (cursor != null) {
+         if (cursor.moveToFirst()) {
+            do {
+               val info = DownloadBlockInfo()
+               info.id = cursor.getInt(cursor.getColumnIndex(TransferDBModel.DownloadDB.id))
+               info.taskId =
+                  cursor.getString(cursor.getColumnIndex(TransferDBModel.DownloadDB.taskId))
+               info.offset =
+                  cursor.getLong(cursor.getColumnIndex(TransferDBModel.DownloadDB.offset))
+               info.start = cursor.getLong(cursor.getColumnIndex(TransferDBModel.DownloadDB.start))
+               info.end = cursor.getLong(cursor.getColumnIndex(TransferDBModel.DownloadDB.end))
+               infos.add(info)
+            } while (cursor.moveToNext())
+         }
+         cursor.close()
+      }
+      return infos
+   }
 
-   @Update
-   fun update(info :DownloadBlockInfo)
+   fun insert(infos: List<DownloadBlockInfo>) : List<Long> {
+      var ids: MutableList<Long> = ArrayList()
+      infos.forEach {
+         val value = ContentValues().apply {
+            put(TransferDBModel.DownloadDB.taskId, it.taskId)
+            put(TransferDBModel.DownloadDB.offset, it.offset)
+            put(TransferDBModel.DownloadDB.start, it.start)
+            put(TransferDBModel.DownloadDB.end, it.end)
+         }
+         ids.add(db.insert(TransferDBModel.DownloadDB.table_name, null, value))
+      }
+      return ids
+   }
 
-   @Query("DELETE FROM downloadblockinfo WHERE taskId = :taskId")
-   fun delete(taskId: String)
+   fun update(info : DownloadBlockInfo) {
+      val value = ContentValues().apply {
+         put(TransferDBModel.DownloadDB.offset, info.offset)
+         put(TransferDBModel.DownloadDB.start, info.start)
+         put(TransferDBModel.DownloadDB.end, info.end)
+      }
+      db.update(TransferDBModel.DownloadDB.table_name, value,
+         "${TransferDBModel.DownloadDB.id}=?",
+         arrayOf(info.id.toString())
+      )
+   }
+
+   fun delete(taskId: String) {
+      db.delete(TransferDBModel.DownloadDB.table_name,
+         "${TransferDBModel.DownloadDB.taskId}=?",
+         arrayOf(taskId)
+      )
+   }
 }

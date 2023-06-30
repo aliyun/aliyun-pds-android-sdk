@@ -17,17 +17,46 @@
 package com.aliyun.pds.sdk.database
 
 import android.content.Context
-import androidx.room.Room
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import com.aliyun.pds.sdk.download.DownloadBlockInfoDao
+import com.aliyun.pds.sdk.upload.UploadInfoDao
 
-class DatabaseHelper {
+const val CREATE_DOWNLOAD_TABLE = """CREATE TABLE ${TransferDBModel.DownloadDB.table_name} (
+            ${TransferDBModel.DownloadDB.id} INTEGER PRIMARY KEY AUTOINCREMENT,
+            ${TransferDBModel.DownloadDB.taskId} TEXT,
+            ${TransferDBModel.DownloadDB.offset} TEXT,
+            ${TransferDBModel.DownloadDB.start} TEXT,
+            ${TransferDBModel.DownloadDB.end} TEXT)"""
 
-    lateinit var transferDB: TransferDB
+const val CREATE_UPLOAD_TABLE = """CREATE TABLE ${TransferDBModel.UploadDB.table_name}(
+            ${TransferDBModel.UploadDB.id} INTEGER PRIMARY KEY AUTOINCREMENT,
+            ${TransferDBModel.UploadDB.taskId} TEXT,
+            ${TransferDBModel.UploadDB.currentBlock} INTEGER,
+            ${TransferDBModel.UploadDB.fileId} TEXT,
+            ${TransferDBModel.UploadDB.uploadId} TEXT,
+            ${TransferDBModel.UploadDB.uploadState} INTEGER)"""
 
-    @Synchronized
-    fun init(context: Context, dbName: String) {
-        transferDB = Room.databaseBuilder(
-            context.applicationContext,
-            TransferDB::class.java, dbName
-        ).fallbackToDestructiveMigration().build()
+private class DatabaseHelperInternal(context: Context, name: String, version: Int) :
+    SQLiteOpenHelper(context, name, null, version) {
+
+    override fun onCreate(db: SQLiteDatabase?) {
+        db?.execSQL(CREATE_DOWNLOAD_TABLE)
+        db?.execSQL(CREATE_UPLOAD_TABLE)
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+
+    }
+}
+
+internal class DatabaseHelper(context: Context, name: String, version: Int) {
+    private val dbHelper: SQLiteOpenHelper = DatabaseHelperInternal(context, name, version)
+
+    val downloadDao: DownloadBlockInfoDao by lazy {
+        DownloadBlockInfoDao(dbHelper.writableDatabase)
+    }
+    val uploadInfoDao: UploadInfoDao by lazy {
+        UploadInfoDao(dbHelper.writableDatabase)
     }
 }

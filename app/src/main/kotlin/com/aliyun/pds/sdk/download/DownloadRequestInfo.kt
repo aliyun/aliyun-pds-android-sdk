@@ -14,7 +14,6 @@ class DownloadRequestInfo(builder: Builder) {
    val revisionId: String?
    val contentHash: String?
    val contentHashName: String?
-   val isLivePhoto: Boolean
 
    init {
       downloadUrl = builder.downloadUrl
@@ -29,7 +28,6 @@ class DownloadRequestInfo(builder: Builder) {
       revisionId = builder.revisionId
       contentHash = builder.contentHash
       contentHashName = builder.contentHashName
-      isLivePhoto = builder.isLivePhoto
    }
 
    class Builder {
@@ -46,7 +44,6 @@ class DownloadRequestInfo(builder: Builder) {
       internal var revisionId: String? = null
       internal var contentHash: String? = null
       internal var contentHashName: String? = null
-      internal var isLivePhoto: Boolean = false
 
 
       fun downloadUrl(url: String) : Builder = apply {
@@ -97,14 +94,9 @@ class DownloadRequestInfo(builder: Builder) {
          this.contentHashName = contentHashName
       }
 
-      fun isLivePhoto(isLivePhoto: Boolean) : Builder = apply {
-         this.isLivePhoto = isLivePhoto
-      }
-
       fun build() : DownloadRequestInfo {
          return DownloadRequestInfo(this)
       }
-
    }
 
 }

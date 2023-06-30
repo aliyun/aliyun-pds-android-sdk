@@ -20,24 +20,29 @@
 package com.aliyun.pds.sdk
 
 import com.aliyun.pds.sdk.thread.ThreadPoolUtils
-import java.util.concurrent.Future
 
 interface SDTask {
 
+    /**
+     *  run task, if task is running nothing to do
+     */
     fun start()
 
-    fun restart(forceClean: Boolean = false): SDTask
+    /**
+     *  clean is true will clean db and temp file,
+     *  this means that when start is called again next time, it will start from the beginning,
+     *  if you will continue transfer next time, set clean to false
+     */
+    fun stop(clean: Boolean = false)
 
-    fun pause()
-
-    fun resume()
-
-    fun cancel()
-
-    fun forkTask(): SDTask
-
+    /**
+     * task complete listener, success or failed; it will call non ui thread
+     */
     fun setOnCompleteListener(listener: OnCompleteListener?)
 
+    /**
+     * task progress listener; it will call non ui thread
+     */
     fun setOnProgressChangeListener(listener: OnProgressListener?)
 }
 
@@ -46,67 +51,43 @@ abstract class SDBaseTask(val taskId: String) : SDTask {
     var progressListener: OnProgressListener? = null
     var completeListener: OnCompleteListener? = null
 
-    enum class TaskState {
-        RUNNING, PAUSED, FINISH
+    internal enum class TaskState {
+        RUNNING, FINISH
     }
 
-    var state = TaskState.RUNNING
-    protected var operation: Operation? = null
+    internal var state = TaskState.FINISH
 
-    override fun restart(forceClean: Boolean): SDTask {
-        val task = forkTask()
-        if (forceClean) {
-            cancel()
-        }
-        task.start()
-        return task
-    }
+    private var operation: Operation? = null
 
-    override fun pause() {
+
+    override fun start() {
         ThreadPoolUtils.instance.taskHandlerThread.submit {
-            if (state != TaskState.RUNNING) {
-                return@submit
-            }
-            operation?.stop()
-            this.state = TaskState.PAUSED
-        }
-    }
-
-    override fun resume() {
-        ThreadPoolUtils.instance.taskHandlerThread.submit {
-            if (state == TaskState.RUNNING) {
-                return@submit
-            }
+            if (state == TaskState.RUNNING) return@submit
             this.state = TaskState.RUNNING
+            operation = createOperation()
             operation?.execute()
         }
     }
 
-    override fun cancel() {
+
+    override fun stop(clean: Boolean) {
         ThreadPoolUtils.instance.taskHandlerThread.submit {
-            operation?.cancel()
+            operation?.stop(clean)
             this.state = TaskState.FINISH
         }
     }
 
-    protected fun execute() {
-        ThreadPoolUtils.instance.taskHandlerThread.submit {
-            this.state = TaskState.RUNNING
-            operation?.execute()
-        }
-    }
+    /**
+     *  create a operation UploadOperation or DownloadOperation
+     */
+    internal abstract fun createOperation(): Operation
 
     override fun setOnCompleteListener(listener: OnCompleteListener?) {
         completeListener = listener
     }
 
+
     override fun setOnProgressChangeListener(listener: OnProgressListener?) {
         progressListener = listener
-    }
-
-    fun updateTaskState(toState: TaskState) : Future<*> {
-        return ThreadPoolUtils.instance.taskHandlerThread.submit {
-            this.state = toState
-        }
     }
 }

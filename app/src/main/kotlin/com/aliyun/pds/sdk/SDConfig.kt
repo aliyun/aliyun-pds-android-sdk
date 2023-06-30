@@ -16,8 +16,6 @@
 
 package com.aliyun.pds.sdk
 
-import java.util.concurrent.TimeUnit
-
 class SDConfig {
 
     var token: SDToken
@@ -29,38 +27,16 @@ class SDConfig {
     var isDebug: Boolean
     var databaseName: String
 
-    var downloadBlockSize = 1024 * 1024 * 10L
-    var uploadBlockSize = 1024 * 1024 * 4L
-    var connectTimeout = 15L
-    var readTimeout = 60L
-    var writeTimeout = 60L
+    var downloadBlockSize: Long
+    var uploadBlockSize: Long
+    var connectTimeout: Long
+    var readTimeout: Long
+    var writeTimeout: Long
 
     val downloadMaxBlockCount = 1000
     val uploadMaxBlockCount = 1000
     val uploadDir = "pds/upload"
     val downloadDir = "pds/download"
-
-    @Deprecated("recommended use 'SDConfig.Builder(token, apiHost, downloadUrlExpiredTime).build()'")
-    constructor(
-        token: SDToken,
-        downloadUrlExpiredTime: Long,
-        apiHost: String,
-        userAgent: String? = null,
-        maxRetryCount: Int = 3,
-        canFastUpload: Boolean = true,
-        databaseName: String = "pds_transfer.db",
-        isDebug: Boolean = false
-    ) {
-        this.token = token
-        this.apiHost = apiHost
-        this.canFastUpload = canFastUpload
-        this.downloadUrlExpiredTime = downloadUrlExpiredTime
-        this.userAgent = userAgent
-        this.maxRetryCount = maxRetryCount
-        this.canFastUpload = canFastUpload
-        this.databaseName = databaseName
-        this.isDebug = isDebug
-    }
 
     constructor(builder: Builder) {
         this.token = builder.token
@@ -84,7 +60,7 @@ class SDConfig {
         var userAgent = ""
         var maxRetryCount = 3
         var isDebug = false
-        var databaseName = "pds_transfer.db"
+        var databaseName: String = "pds_transfer.db"
 
         private val downloadMiniBlockSize = 1024 * 1024 * 1L
         private val uploadMiniBlockSize = 1024 * 1024 * 1L

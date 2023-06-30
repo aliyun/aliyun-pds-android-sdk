@@ -16,49 +16,37 @@
 
 package com.aliyun.pds.sdk
 
-import android.content.Context
 import com.aliyun.pds.sdk.download.DownloadRequestInfo
+import com.aliyun.pds.sdk.download.SDDownloadTask
+import com.aliyun.pds.sdk.upload.SDUploadTask
 import com.aliyun.pds.sdk.upload.UploadRequestInfo
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
-class SDTransferClientTest {
+class SDTransferClientTest : BaseTest() {
 
-
-    @Mock
-    private lateinit var mockContext: Context
-
-
-    @Before
-    fun setup() {
-        Mockito.`when`(mockContext.applicationContext).thenReturn(mockContext)
-        val config = MockUtils.mockSDConfig()
-        SDClient.instance.init(mockContext, config)
+    override fun setup() {
+        Mockito.`when`(databaseHelper.downloadDao).thenReturn(downloadDao)
+        Mockito.`when`(databaseHelper.uploadInfoDao).thenReturn(uploadInfoDao)
     }
 
     @Test
     fun createDownloadTask() {
         val downloadInfo = DownloadRequestInfo.Builder().downloadUrl("url").build()
-        val task = SDClient.instance.createDownloadTask("1", downloadInfo)
+        val task = SDClient.instance.createDownloadTask("1", downloadInfo) as SDDownloadTask
 
         assert(task.downloadUrl == "url")
 
-        task.pause()
-        Thread.sleep(1000)
-        assert(task.state == SDBaseTask.TaskState.PAUSED)
-
-        task.resume()
-        Thread.sleep(1000)
-        assert(task.state == SDBaseTask.TaskState.RUNNING)
-
-        task.cancel()
+        task.stop()
         Thread.sleep(1000)
         assert(task.state == SDBaseTask.TaskState.FINISH)
+
+        task.start()
+        Thread.sleep(1)
+        assert(task.state == SDBaseTask.TaskState.RUNNING)
     }
 
     @Test
@@ -67,20 +55,37 @@ class SDTransferClientTest {
         val uploadInfo = UploadRequestInfo.Builder()
             .driveId("id")
             .build()
-        val task = SDClient.instance.createUploadTask("2", uploadInfo)
+        val task = SDClient.instance.createUploadTask("2", uploadInfo) as SDUploadTask
         assert(task.driveId == "id")
 
-        task.pause()
-        Thread.sleep(1000)
-        assert(task.state == SDBaseTask.TaskState.PAUSED)
-
-        task.resume()
-        Thread.sleep(1000)
-        assert(task.state == SDBaseTask.TaskState.RUNNING)
-
-        task.cancel()
+        task.stop()
         Thread.sleep(1000)
         assert(task.state == SDBaseTask.TaskState.FINISH)
+
+        task.start()
+        Thread.sleep(1000)
+        assert(task.state == SDBaseTask.TaskState.RUNNING)
+    }
+
+    @Test
+    fun cleanUploadTask() {
+        val uploadInfo = UploadRequestInfo.Builder().driveId("id").build()
+        val task = SDClient.instance.createUploadTask("2", uploadInfo) as SDUploadTask
+//        assert(uploadInfoDao.getUploadInfo(task.taskId) != null)
+        SDClient.instance.cleanUploadTask(task.taskId)
+        Thread.sleep(1000)
+        assert(uploadInfoDao.getUploadInfo(task.taskId) == null)
+    }
+
+    @Test
+    fun cleanDownloadTask() {
+        val downloadInfo = DownloadRequestInfo.Builder().downloadUrl("url").build()
+        val task = SDClient.instance.createDownloadTask("1", downloadInfo) as SDDownloadTask
+//        assert(downloadDao.getTask(task.taskId).isNotEmpty())
+        SDClient.instance.cleanDownloadTask(task.taskId, task.filePath)
+        Thread.sleep(1000)
+        assert(downloadDao.getAll(task.taskId).isEmpty())
+
     }
 
 }

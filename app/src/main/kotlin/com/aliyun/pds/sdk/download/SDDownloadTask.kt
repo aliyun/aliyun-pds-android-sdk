@@ -31,51 +31,15 @@ class SDDownloadTask(
     var shareToken: String?,
     val sharePwd: String?,
     val contentHash: String? = "",
-    val contentHashName: String? = "",
-    val isLivePhoto: Boolean = false
+    private val contentHashName: String? = ""
 ) : SDBaseTask(taskId) {
 
-    val resultCheck: ResultCheck =
-        (if (contentHashName == "crc64") CRC64Check() else if (contentHashName == "sha1") SHA1Check() else SizeCheck())
-
+    private val resultCheck = CRC64Check()
+    private val dao = SDClient.instance.database.downloadDao
     val config = SDClient.instance.config
-    val dao = SDClient.instance.database.transferDB.downloadBlockInfoDao()
 
-    override fun start() {
-        operation = createOperation(this)
-        execute()
-    }
-
-    override fun forkTask(): SDTask {
-        val newTask = SDDownloadTask(
-            taskId,
-            fileId,
-            fileName,
-            fileSize,
-            downloadUrl,
-            filePath,
-            driveId,
-            shareId,
-            revisionId,
-            shareToken,
-            sharePwd,
-            contentHash,
-            contentHashName,
-            isLivePhoto
-        )
-        newTask.operation = createOperation(newTask)
-        newTask.setOnProgressChangeListener(progressListener)
-        newTask.setOnCompleteListener(completeListener)
-        return newTask
-    }
-
-    fun createOperation(task: SDDownloadTask): Operation {
+    override fun createOperation(): Operation {
         val ctx = SDClient.instance.appContext
-        return if (isLivePhoto) {
-            LivePhotoDownloadOperation(ctx, task, dao, config)
-        } else {
-            DownloadOperation(ctx, task, dao, config, resultCheck)
-        }
+        return DownloadOperation(ctx, this, dao, config, resultCheck)
     }
-
 }

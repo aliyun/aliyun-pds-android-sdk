@@ -16,8 +16,7 @@
 
 package com.aliyun.pds.sdk.upload
 
-import com.aliyun.pds.sdk.SDBaseTask
-import com.aliyun.pds.sdk.SDTask
+import com.aliyun.pds.sdk.*
 
 class SDUploadTask(
     taskId: String,
@@ -38,25 +37,17 @@ class SDUploadTask(
     var sha1: String = ""
     var uploadId: String? = null
     var currentBlock: Int = 0
-//    var fileId: String? = null
 
-    enum class UploadState {
-        FILE_CREATE, UPLOADING, COMPLETE, FINISH
+    private val dao: UploadInfoDao = SDClient.instance.database.uploadInfoDao
+
+    internal enum class UploadState {
+        FILE_CREATE, UPLOADING, FILE_COMPLETE, FINISH
     }
 
-    var uploadState = UploadState.FILE_CREATE
+    internal var uploadState = UploadState.FILE_CREATE
 
-    override fun start() {
-        operation = UploadOperation(this)
-        execute()
-    }
-
-    override fun forkTask(): SDTask {
-        val newTask = SDUploadTask(
-            taskId, fileName, filePath, fileSize, fileId, parentId, mimeType, driveId, shareId, shareToken, sharePwd, checkNameMode)
-        newTask.setOnCompleteListener(completeListener)
-        newTask.setOnProgressChangeListener(progressListener)
-        return newTask
+    override fun createOperation(): Operation {
+        return UploadOperation(this, dao)
     }
 
 }

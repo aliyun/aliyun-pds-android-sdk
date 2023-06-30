@@ -18,6 +18,7 @@ package com.aliyun.pds.sdk.utils
 
 import com.aliyun.pds.sdk.SDClient
 import com.aliyun.pds.sdk.SDConfig
+import com.aliyun.pds.sdk.download.DownloadBlockInfoDao
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -125,8 +126,7 @@ class FileUtils {
         if (tmpFile.exists()) {
             tmpFile.delete()
         }
-        val dao = SDClient.instance.database.transferDB.downloadBlockInfoDao()
-        dao.delete(taskId)
+        SDClient.instance.database.downloadDao.delete(taskId)
     }
 
     fun removeUploadTmp(taskId: String) {
@@ -151,7 +151,7 @@ class FileUtils {
         return File(parent, fileName).exists()
     }
 
-    fun parseFileName(fileName: String): Array<String> {
+    private fun parseFileName(fileName: String): Array<String> {
         val index = fileName.lastIndexOf(".")
         var toPrefix: String
         var toSuffix = ""

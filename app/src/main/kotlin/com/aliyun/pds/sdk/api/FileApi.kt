@@ -23,7 +23,7 @@ import com.aliyun.pds.sdk.SDConfig
 import com.aliyun.pds.sdk.http.HTTPUtils
 import com.aliyun.pds.sdk.model.*
 import okhttp3.Response
-import okio.IOException
+import java.io.IOException
 
 /**
  * file doc reference => https://help.aliyun.com/document_detail/175927.html
@@ -202,11 +202,17 @@ fun <T : BaseResp> apiPost(path: String, body: Any, t: T, headers: MutableMap<St
             }
         } else {
             val jsonObject: JSONObject = JSON.parseObject(respBody)
-            t.errorCode = jsonObject.getString("code")
-            t.errorMessage = jsonObject.getString("message")
+            if (jsonObject != null) {
+                t.errorCode = jsonObject.getString("code")
+                t.errorMessage = jsonObject.getString("message")
+            } else {
+                t.errorCode = "${resp?.code}"
+                t.errorMessage = resp?.message
+            }
             t
         }
         baseResp.code = resp.code
+        baseResp.requestId = resp.header("x-ca-request-id")
         return baseResp
     } catch (e: Exception) {
         e.printStackTrace()

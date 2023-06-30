@@ -16,17 +16,10 @@
 
 package com.aliyun.pds.sdk.download
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-
-@Entity
 class DownloadBlockInfo {
+    var id = 0
+    var taskId: String? = null
     var offset: Long = 0
     var start: Long = 0
     var end: Long = 0
-
-    @PrimaryKey(autoGenerate = true)
-    var id: Long = 0
-    var taskId: String? = null
 }

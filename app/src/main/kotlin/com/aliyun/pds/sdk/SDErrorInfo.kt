@@ -24,10 +24,11 @@ class SDErrorInfo(
     val code: SDTransferError,
     val message: String,
     val exception: Exception?,
+    var requestId: String? = ""
 ) {
 
     override fun toString(): String {
-        return "code is $code, message is $message, exception is ${exception.toString()}"
+        return "code is $code, message is $message, exception is ${exception.toString()}, requestId is $requestId"
     }
 }
 
@@ -36,31 +37,41 @@ fun covertFromException(exception: Exception?): SDErrorInfo {
         return SDErrorInfo(SDTransferError.None, "success", null)
     }
     when (exception) {
-        is SDForbiddenException -> {
-            return SDErrorInfo(SDTransferError.PermissionDenied, "no permission", exception)
-        }
         is SDNetworkException -> {
             return SDErrorInfo(SDTransferError.Network, "network error", exception)
-        }
-        is SDSizeExceedException -> {
-            return SDErrorInfo(SDTransferError.SizeExceed, "file is bigger than limit", exception)
         }
         is SpaceNotEnoughException -> {
             return SDErrorInfo(SDTransferError.SpaceNotEnough, "space not enough", exception)
         }
-        is FileNotFoundException -> return SDErrorInfo(SDTransferError.FileNotExist, "file not found", exception)
-
-        is RemoteFileNotFoundException -> return SDErrorInfo(SDTransferError.RemoteFileNotExist, "remote file not found", exception)
+        is FileNotFoundException -> return SDErrorInfo(
+            SDTransferError.FileNotExist,
+            "file not found",
+            exception
+        )
 
         is SDServerException -> {
-            return SDErrorInfo(SDTransferError.Server, "http code is ${exception.code}, error code is ${exception.erroCode},  msg: ${exception.message}", exception)
+            return SDErrorInfo(
+                SDTransferError.Server,
+                "http code is ${exception.code}, error code is ${exception.errorCode},  msg: ${exception.message}",
+                exception,
+                exception.requestId
+            )
         }
-        is ShareLinkCancelledException -> {
-            return SDErrorInfo(SDTransferError.ShareLinkCancelled, "share link is cancelled", exception)
-        }
-        is SDUnknownException -> return SDErrorInfo(SDTransferError.Unknown, "${exception.message}", exception)
-        is SDTmpFileNotExistException -> return SDErrorInfo(SDTransferError.TmpFileNotExist, "tmp file not exist", exception)
-        is SDPathRuleErrorException -> return SDErrorInfo(SDTransferError.PathRuleError, "downlaod path rule error", exception)
+        is SDUnknownException -> return SDErrorInfo(
+            SDTransferError.Unknown,
+            "${exception.message}",
+            exception
+        )
+        is SDTmpFileNotExistException -> return SDErrorInfo(
+            SDTransferError.TmpFileNotExist,
+            "tmp file not exist",
+            exception
+        )
+        is SDPathRuleErrorException -> return SDErrorInfo(
+            SDTransferError.PathRuleError,
+            "downlaod path rule error",
+            exception
+        )
         else -> return SDErrorInfo(SDTransferError.Unknown, "${exception.message}", exception)
     }
 }

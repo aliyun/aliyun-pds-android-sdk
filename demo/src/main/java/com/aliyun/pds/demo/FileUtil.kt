@@ -3,7 +3,7 @@ package com.aliyun.pds.demo
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import android.webkit.MimeTypeMap
+import android.provider.OpenableColumns
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -18,24 +18,29 @@ object FileUtil {
             file = File(uri.path)
         } else if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
             val contentResolver = context.contentResolver
-            val displayName = (System.currentTimeMillis().toString()
-                    + "." + MimeTypeMap.getSingleton()
-                .getExtensionFromMimeType(contentResolver.getType(uri)))
-            try {
-                val inputStream = contentResolver.openInputStream(uri)
-                val cache = File(context.cacheDir.absolutePath, displayName)
-                val fos = FileOutputStream(cache)
-                val b = ByteArray(1024)
-                while (inputStream!!.read(b) != -1) {
-                    fos.write(b) // 写入数据
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            if (cursor != null) {
+                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                cursor.moveToNext()
+                val fileName = cursor.getString(nameIndex)
+                cursor.close()
+
+                try {
+                    val inputStream = contentResolver.openInputStream(uri)
+                    val cache = File(context.cacheDir.absolutePath, fileName)
+                    val fos = FileOutputStream(cache)
+                    val b = ByteArray(1024)
+                    while (inputStream!!.read(b) != -1) {
+                        fos.write(b) // 写入数据
+                    }
+                    file = cache
+                    fos.close()
+                    inputStream.close()
+                } catch (e: FileNotFoundException) {
+                    e.printStackTrace()
+                } catch (e: IOException) {
+                    e.printStackTrace()
                 }
-                file = cache
-                fos.close()
-                inputStream.close()
-            } catch (e: FileNotFoundException) {
-                e.printStackTrace()
-            } catch (e: IOException) {
-                e.printStackTrace()
             }
         }
         return file

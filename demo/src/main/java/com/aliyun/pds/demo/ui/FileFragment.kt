@@ -1,58 +1,29 @@
-/*
- *  Copyright 2009-2021 Alibaba Cloud All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
-
-package com.aliyun.pds.demo
+package com.aliyun.pds.demo.ui
 
 import android.app.AlertDialog
 import android.content.Context
 import android.net.Uri
-import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.ImageView
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.alibaba.fastjson.JSON
-import com.aliyun.pds.sdk.*
+import com.aliyun.pds.demo.*
+import com.aliyun.pds.demo.databinding.FragmentFileBinding
+import com.aliyun.pds.sdk.SDClient
 import com.aliyun.pds.sdk.model.*
-import kotlinx.android.synthetic.main.activity_file_list.*
+import java.io.File
 import kotlin.concurrent.thread
 
-import android.os.Build
-
-import java.io.*
-
-
-fun Any.toJSONString(): String {
-   return JSON.toJSONString(this)
-}
-
-class FileActivity : BaseActivity(), OnItemClickListener {
-
-    companion object {
-        const val TAG = "FileActivity"
-    }
+class FileFragment : Fragment(), OnItemClickListener {
 
     private val REQUEST_COPY = 0x000001
     private val REQUEST_MOVE = 0x000002
@@ -60,23 +31,22 @@ class FileActivity : BaseActivity(), OnItemClickListener {
     private val REQUEST_UPDATE = 0x000004
     private val REQUEST_DETAILS = 0x000005
 
+    private lateinit var binding: FragmentFileBinding
+    private lateinit var mFilesView: RecyclerView
     private lateinit var gridlayoutManager: GridLayoutManager
     private lateinit var dataList: ArrayList<FileInfoResp>
 
-    private val startUpload = registerForActivityResult(ResultContract()) {
-        if (it != null) {
-            upload(it)
-        }
-    }
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentFileBinding.inflate(inflater, container, false)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_file_list)
-
-        searchEdit.setOnEditorActionListener { _, actionId, _ ->
+        binding.searchEdit.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                if (!searchEdit.text.isNullOrEmpty()) {
-                    fileSearch(searchEdit.text.toString())
+                if (!binding.searchEdit.text.isNullOrEmpty()) {
+                    fileSearch(binding.searchEdit.text.toString())
                 } else {
                     loadData()
                 }
@@ -84,14 +54,23 @@ class FileActivity : BaseActivity(), OnItemClickListener {
             false
         }
 
-        addBtn.setOnClickListener {
+        binding.addBtn.setOnClickListener {
             showAddDialog()
         }
 
-        gridlayoutManager = GridLayoutManager(this, 2)
-        recyclerview.layoutManager = gridlayoutManager
+        mFilesView = binding.recyclerview
+        gridlayoutManager = GridLayoutManager(context, 2)
+        mFilesView.layoutManager = gridlayoutManager
 
         loadData()
+
+        return binding.root
+    }
+
+    private val startUpload = registerForActivityResult(ResultContract()) {
+        if (it != null) {
+            upload(it)
+        }
     }
 
     /**
@@ -119,12 +98,12 @@ class FileActivity : BaseActivity(), OnItemClickListener {
     private fun upload(uri: Uri) {
         val file =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                FileUtil.uriToFileApiQ(this, uri)
+                FileUtil.uriToFileApiQ(context!!, uri)
             else
-                FileUtil.uriToFileApi(this, uri)
+                FileUtil.uriToFileApi(context!!, uri)
 
         if (file != null) {
-            TransferUtil.startUpload(this, file, object : OnUploadSuccessListener {
+            TransferUtil.startUpload(activity!!, file, object : OnUploadSuccessListener {
                 override fun onUploadSuccess() {
                     loadData()
                 }
@@ -136,6 +115,10 @@ class FileActivity : BaseActivity(), OnItemClickListener {
      * 获取文件列表
      */
     private fun loadData() {
+        if (NetworkUtil.isNetwork(context!!)) {
+            return
+        }
+
         thread {
             val request = FileListRequest()
             request.parentId = "root"
@@ -143,10 +126,10 @@ class FileActivity : BaseActivity(), OnItemClickListener {
             request.driveId = Config.driveId
             request.fields = "*"
             val resp = SDClient.instance.fileApi.fileList(request)
-            runOnUiThread {
+            activity!!.runOnUiThread {
                 if (resp?.items != null) {
                     dataList = resp.items!!
-                    recyclerview.adapter = GridAdapter(this, dataList, this)
+                    mFilesView.adapter = GridAdapter(context!!, dataList, this)
                 }
             }
         }
@@ -165,9 +148,9 @@ class FileActivity : BaseActivity(), OnItemClickListener {
             val resp = SDClient.instance.fileApi.fileSearch(request)
             Log.e("HX", "code: " + resp?.code)
             Log.e("HX", "msg: " + resp?.errorMessage)
-            runOnUiThread {
+            activity!!.runOnUiThread {
                 if (resp?.items != null) {
-                    recyclerview.adapter = GridAdapter(this, resp.items!!, this)
+                    mFilesView.adapter = GridAdapter(context!!, resp.items!!, this)
                 }
             }
         }
@@ -185,7 +168,7 @@ class FileActivity : BaseActivity(), OnItemClickListener {
             }
         }
 
-        val listDialog: AlertDialog.Builder = AlertDialog.Builder(this)
+        val listDialog: AlertDialog.Builder = AlertDialog.Builder(context)
         listDialog.setTitle(title + "到")
         listDialog.setItems(folderList.toTypedArray()) { _, idx ->
             if (title == "拷贝") {
@@ -217,27 +200,27 @@ class FileActivity : BaseActivity(), OnItemClickListener {
      */
     private fun showDetailsDialog(info: FileInfoResp) {
         Handler(Looper.getMainLooper()).post {
-            val view = LayoutInflater.from(this).inflate(R.layout.dialog_file_details, null)
+            val view = LayoutInflater.from(context).inflate(R.layout.dialog_file_details, null)
             view.findViewById<AppCompatTextView>(R.id.tvFileName).text = info.name
 
             val fileSize = if (info.fileSize == null) {
-                    ""
-                } else {
-                    when {
-                        info.fileSize!! > (1024 * 1024) -> {
-                            (info.fileSize!! / (1024 * 1024)).toString() + "MB"
-                        }
-                        info.fileSize!! > 1024 -> {
-                            (info.fileSize!! / 1024).toString() + "KB"
-                        }
-                        else -> {
-                            info.fileSize.toString() + "B"
-                        }
+                ""
+            } else {
+                when {
+                    info.fileSize!! > (1024 * 1024) -> {
+                        (info.fileSize!! / (1024 * 1024)).toString() + "MB"
+                    }
+                    info.fileSize!! > 1024 -> {
+                        (info.fileSize!! / 1024).toString() + "KB"
+                    }
+                    else -> {
+                        info.fileSize.toString() + "B"
                     }
                 }
+            }
             view.findViewById<AppCompatTextView>(R.id.tvFileSize).text = fileSize
 
-            val detailsDialog: AlertDialog.Builder = AlertDialog.Builder(this)
+            val detailsDialog: AlertDialog.Builder = AlertDialog.Builder(context)
             detailsDialog.setTitle("文件详情")
             detailsDialog.setView(view)
             detailsDialog.show()
@@ -279,9 +262,9 @@ class FileActivity : BaseActivity(), OnItemClickListener {
     }
 
     override fun download(item: FileInfoResp) {
-        val file = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        val file = context!!.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
         val downloadFilePath = File(file, item.name!!).path
-        TransferUtil.startDownload(this, item, downloadFilePath)
+        TransferUtil.startDownload(activity!!, item, downloadFilePath)
     }
 
     /**
@@ -311,7 +294,7 @@ class FileActivity : BaseActivity(), OnItemClickListener {
                     resp = SDClient.instance.fileApi.fileGet(requestBody as FileGetRequest)!!
                 }
             }
-            Log.d(TAG, resp.toJSONString())
+            Log.d("FileFragment", resp.toString())
             if (requestType == REQUEST_DETAILS) {
                 showDetailsDialog(resp as FileInfoResp)
             } else {
@@ -325,7 +308,7 @@ class FileActivity : BaseActivity(), OnItemClickListener {
      */
     private fun showAddDialog() {
         val items = arrayOf("上传文件", "新建文件夹")
-        val listDialog: AlertDialog.Builder = AlertDialog.Builder(this)
+        val listDialog: AlertDialog.Builder = AlertDialog.Builder(context!!)
         listDialog.setTitle("操作")
         listDialog.setItems(items) { _, idx ->
             when (idx) {
@@ -339,7 +322,6 @@ class FileActivity : BaseActivity(), OnItemClickListener {
         }
         listDialog.show()
     }
-
 }
 
 class GridAdapter(private val context: Context, private val dataList: ArrayList<FileInfoResp>, listener: OnItemClickListener) :
@@ -349,7 +331,7 @@ class GridAdapter(private val context: Context, private val dataList: ArrayList<
 
     override fun onCreateViewHolder(parent: ViewGroup, viewTypes: Int): FileViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.file_item, parent, false)
-        return FileViewHolder(view, viewTypes)
+        return FileViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: FileViewHolder, position: Int) {
@@ -363,16 +345,16 @@ class GridAdapter(private val context: Context, private val dataList: ArrayList<
 
 }
 
-class FileViewHolder(itemView: View, var viewTypes: Int) : RecyclerView.ViewHolder(itemView) {
+class FileViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-    private var text: TextView? = null
-    private var image: ImageView? = null
-    private var more: View? = null
+    private lateinit var text: TextView
+    private lateinit var image: ImageView
+    private lateinit var itemLayout: RelativeLayout
 
     fun bindModel(item: FileInfoResp, listener: OnItemClickListener) {
         image = itemView.findViewById(R.id.image)
         text = itemView.findViewById(R.id.text)
-        more = itemView.findViewById(R.id.more)
+        itemLayout = itemView.findViewById(R.id.itemView)
 
         val imageRes = when (item.type) {
             "file" -> {
@@ -387,43 +369,42 @@ class FileViewHolder(itemView: View, var viewTypes: Int) : RecyclerView.ViewHold
                 R.drawable.unknown
             }
         }
-        image?.setImageResource(imageRes)
-        text?.text = item.name
-        more?.setOnClickListener{
+        image.setImageResource(imageRes)
+        text.text = item.name
+        itemLayout.setOnClickListener {
             showListDialog(item, listener)
         }
     }
 
     private fun showListDialog(item: FileInfoResp, listener: OnItemClickListener) {
         val items = if (item.type == "folder")
-                        arrayOf("拷贝", "移动", "删除", "更新")
-                    else
-                        arrayOf("拷贝", "移动", "删除", "更新", "详情", "下载")
+            arrayOf("拷贝", "移动", "删除", "更新")
+        else
+            arrayOf("拷贝", "移动", "删除", "更新", "详情", "下载")
         val listDialog: AlertDialog.Builder = AlertDialog.Builder(itemView.context)
-        listDialog.setTitle("操作")
+        listDialog.setTitle("操作-${item.name}")
         listDialog.setItems(items) { _, idx ->
-           when (idx) {
-               0 ->  {
-                   listener.copy(item)
-               }
-               1 ->  {
-                   listener.move(item)
-               }
-               2 -> {
-                   listener.del(item)
-               }
-               3 -> {
-                   listener.update(item)
-               }
-               4 -> {
-                   listener.details(item)
-               }
-               5 -> {
-                   listener.download(item)
-               }
-           }
+            when (idx) {
+                0 ->  {
+                    listener.copy(item)
+                }
+                1 ->  {
+                    listener.move(item)
+                }
+                2 -> {
+                    listener.del(item)
+                }
+                3 -> {
+                    listener.update(item)
+                }
+                4 -> {
+                    listener.details(item)
+                }
+                5 -> {
+                    listener.download(item)
+                }
+            }
         }
         listDialog.show()
     }
 }
-

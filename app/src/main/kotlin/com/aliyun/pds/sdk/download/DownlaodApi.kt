@@ -22,7 +22,7 @@ import com.aliyun.pds.sdk.model.FileGetDownloadUrlResp
 import com.aliyun.pds.sdk.model.GetShareTokenRequest
 import okio.IOException
 
-class DownloadApi {
+internal class DownloadApi {
 
     companion object {
         val instance = DownloadApi()
@@ -47,6 +47,7 @@ class DownloadApi {
                 val shareTokenRequest = GetShareTokenRequest(task.shareId, task.sharePwd)
                 val shareTokenResp = SDClient.instance.shareApi.getShareToken(shareTokenRequest)
                 if (shareTokenResp?.code == 200 && !shareTokenResp.shareToken.isNullOrEmpty()) {
+                    task.shareToken = shareTokenResp.shareToken
                     resp = SDClient.instance.fileApi.fileGetDownloadUrl(request, task.shareToken)
                 }
             }

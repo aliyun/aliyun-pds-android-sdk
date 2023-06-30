@@ -21,5 +21,6 @@ open class BaseResp {
     var code: Int = 0
     var errorCode: String? = ""
     var errorMessage: String? = ""
+    var requestId: String? = ""
 }
 

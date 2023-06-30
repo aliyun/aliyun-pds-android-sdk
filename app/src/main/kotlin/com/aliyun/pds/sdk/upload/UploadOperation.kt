@@ -16,7 +16,6 @@
 
 package com.aliyun.pds.sdk.upload
 
-import android.util.Log
 import com.aliyun.pds.sdk.*
 import com.aliyun.pds.sdk.exception.*
 import com.aliyun.pds.sdk.http.HTTPUtils
@@ -30,9 +29,11 @@ import java.io.IOException
 import java.io.InterruptedIOException
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
 
-class UploadOperation(private val task: SDUploadTask) : Operation {
+internal class UploadOperation(
+    private val task: SDUploadTask,
+    private val dao: UploadInfoDao,
+) : Operation {
 
     var blockList: MutableList<UploadBlockInfo> = ArrayList()
 
@@ -47,7 +48,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
 
     private val uploadApi: UploadApi = UploadApi(task)
     private lateinit var uploadInfo: UploadInfo
-    private val dao: UploadInfoDao = SDClient.instance.database.transferDB.uploadInfoDao()
+//    private val dao: UploadInfoDao = SDClient.instance.database.transferDB.uploadInfoDao()
 
     override fun execute() {
 
@@ -68,16 +69,20 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         })
     }
 
-    override fun stop() {
+    override fun stop(clean: Boolean) {
+        if (clean) {
+            blockList.clear()
+            dao.delete(uploadInfo)
+        }
         stopped = true
         taskFuture?.cancel(true)
     }
 
-    override fun cancel() {
-        stop()
-        blockList.clear()
-        dao.delete(uploadInfo)
-    }
+//    override fun cancel() {
+//        stop()
+//        blockList.clear()
+//        dao.delete(uploadInfo)
+//    }
 
     fun preAction() {
         initBlock()
@@ -85,19 +90,21 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
 
     fun initBlock() {
         blockList.clear()
-        val info = dao.getUploadInfo(task.taskId)
-        if (null != info) {
-            uploadInfo = info
-            task.currentBlock = uploadInfo.currentBlock
-            task.fileId = uploadInfo.fileId
-            task.uploadId = uploadInfo.uploadId
-            task.uploadState = SDUploadTask.UploadState.values()[uploadInfo.uploadState]
-        } else {
-            uploadInfo = UploadInfo()
-            uploadInfo.taskId = task.taskId
-            uploadInfo.fileId = task.fileId
-            val id = dao.insert(uploadInfo)
-            uploadInfo.id = id
+        synchronized(dao) {
+            val info = dao.getUploadInfo(task.taskId)
+            if (null != info) {
+                uploadInfo = info
+                task.currentBlock = uploadInfo.currentBlock
+                task.fileId = uploadInfo.fileId
+                task.uploadId = uploadInfo.uploadId
+                task.uploadState = SDUploadTask.UploadState.values()[uploadInfo.uploadState]
+            } else {
+                uploadInfo = UploadInfo()
+                uploadInfo.taskId = task.taskId
+                uploadInfo.fileId = task.fileId
+                val id = dao.insert(uploadInfo)
+                uploadInfo.id = id.toInt()
+            }
         }
 
         var blockCount: Int = (task.fileSize / miniBlockSize).toInt()
@@ -127,9 +134,9 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
 
     fun uploadAction() {
 
-        while (SDBaseTask.TaskState.RUNNING == task.state
-            && task.uploadState != SDUploadTask.UploadState.FINISH
-            && !stopped )  {
+        while (task.uploadState != SDUploadTask.UploadState.FINISH
+            && !stopped
+        ) {
             when {
                 SDUploadTask.UploadState.FILE_CREATE == task.uploadState -> {
                     createFile(true)
@@ -137,7 +144,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
                 SDUploadTask.UploadState.UPLOADING == task.uploadState -> {
                     uploading()
                 }
-                SDUploadTask.UploadState.COMPLETE == task.uploadState -> {
+                SDUploadTask.UploadState.FILE_COMPLETE == task.uploadState -> {
                     uploadComplete()
                     task.uploadState = SDUploadTask.UploadState.FINISH
                 }
@@ -189,6 +196,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             }
             throw SDNetworkException("create file error")
         }
+        if (stopped) return
 
         if (null == response) {
             throw SDNetworkException("create file error, response is null or json parse error")
@@ -218,34 +226,24 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
                         throw SDUnknownException("recursive pre hash match")
                     }
                 } else {
-                   serverErrorHandle(response.code, response.errorCode, response.errorMessage)
+                    serverErrorHandle(
+                        response.code,
+                        response.errorCode,
+                        response.requestId,
+                        response.errorMessage
+                    )
                 }
             }
         }
     }
 
-    private fun serverErrorHandle(httpCode: Int, errorCode: String?, errorMessage: String?) {
-
-        when {
-            403 == httpCode -> {
-                throw SDForbiddenException("code: $errorCode msg: $errorMessage")
-            }
-            404 == httpCode -> {
-                throw RemoteFileNotFoundException("code: $errorCode msg : $errorMessage")
-            }
-            "QuotaExhausted.Drive" == errorCode -> {
-                throw SpaceNotEnoughException("no space to create file")
-            }
-            "InvalidParameter.SizeExceed" == errorCode -> {
-                throw SDSizeExceedException("file size too big")
-            }
-            400 == httpCode && "ShareLink.Cancelled" == errorCode -> {
-               throw ShareLinkCancelledException("share link is cancelled")
-            }
-            else -> {
-                throw SDServerException(httpCode, errorCode, errorMessage)
-            }
-        }
+    private fun serverErrorHandle(
+        httpCode: Int,
+        errorCode: String?,
+        errorMessage: String?,
+        requestId: String?
+    ) {
+        throw SDServerException(httpCode, errorCode, errorMessage, requestId)
     }
 
     fun uploading() {
@@ -256,7 +254,12 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
                     blockList[i].url = fileInfo.partInfoList!![i].uploadUrl
                 }
             } else {
-                throw SDServerException(200, "EmptyUploadUrl", "get empty upload url")
+                throw SDServerException(
+                    200,
+                    "EmptyUploadUrl",
+                    fileInfo?.requestId,
+                    "get empty upload url"
+                )
             }
         }
 
@@ -273,12 +276,15 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             val url = block.url
             var resp: Response? = null
             try {
-                resp = HTTPUtils.instance.uploadData(url!!,
+                resp = HTTPUtils.instance.uploadData(
+                    url!!,
                     File(task.filePath),
                     task.mimeType,
                     block.start,
                     block.size,
-                    listener)
+                    listener
+                )
+
             } catch (e: Exception) {
                 if (e is InterruptedIOException && stopped) {
                     return
@@ -292,7 +298,10 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
                 } else {
                     throw SDUnknownException(e.message)
                 }
+            } finally {
+               resp?.close()
             }
+            if (stopped) return
             if (null == resp) {
                 throw SDNetworkException("upload error")
             }
@@ -303,7 +312,12 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             } else if (403 == resp.code) {
                 val fileInfo = getUploadUrl()
                 if (null == fileInfo?.partInfoList) {
-                    val e = SDServerException(200, "EmptyUploadUrl", "part info list is null")
+                    val e = SDServerException(
+                        200,
+                        "EmptyUploadUrl",
+                        fileInfo?.requestId,
+                        "part info list is null"
+                    )
                     e.printStackTrace()
                     throw e
                 }
@@ -311,7 +325,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             }
         }
         if (task.currentBlock == blockList.size) {
-            task.uploadState = SDUploadTask.UploadState.COMPLETE
+            task.uploadState = SDUploadTask.UploadState.FILE_COMPLETE
             saveUploadInfo()
         }
     }
@@ -324,6 +338,8 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
     }
 
     fun progressChange(currentTime: Long) {
+
+        if (stopped) return
         if (currentTime - progressLastUpdate > 300 || currentSize == task.fileSize) {
             progressLastUpdate = currentTime
             task.progressListener?.onProgressChange(currentSize)
@@ -379,7 +395,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         return if (resp.code == 200) {
             resp
         } else {
-            serverErrorHandle(resp.code, resp.errorCode, resp.errorMessage)
+            serverErrorHandle(resp.code, resp.errorCode, resp.requestId, resp.errorMessage)
             null
         }
     }
@@ -414,7 +430,7 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
         if (resp.code == 200) {
             return
         } else {
-            serverErrorHandle(resp.code, resp.errorCode, resp.errorMessage)
+            serverErrorHandle(resp.code, resp.errorCode, resp.requestId, resp.errorMessage)
         }
     }
 
@@ -427,12 +443,11 @@ class UploadOperation(private val task: SDUploadTask) : Operation {
             return
         }
         val errorInfo = covertFromException(e)
-        val future = task.updateTaskState(SDBaseTask.TaskState.FINISH)
-        // wait task success
-        future.get(2, TimeUnit.SECONDS)
-        task.completeListener?.onComplete(task.taskId,
+        task.state = SDBaseTask.TaskState.FINISH
+        task.completeListener?.onComplete(
+            task.taskId,
             SDFileMeta(task.fileId, task.fileName, task.filePath, task.uploadId), errorInfo
         )
-        stop()
+        stop(false)
     }
 }

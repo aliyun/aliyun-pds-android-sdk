@@ -62,7 +62,7 @@ class FileUtilsTest {
     @Test
     fun crc64Test() {
         println("file")
-        val r = CRC64.fromFile(File("./test/crc.jpg"))?.stringValue
+        val r = CRC64.fromFile(File("./pds_test/crc.jpg"))?.stringValue
         println(r)
         assert(r == "4470037415778292408")
     }

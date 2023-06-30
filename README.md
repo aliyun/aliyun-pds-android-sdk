@@ -8,7 +8,7 @@
 ## 集成
 
 ```kotlin
-implementation 'com.aliyun.pds:android-sdk:0.1.3'
+implementation 'com.aliyun.pds:android-sdk:0.1.4'
 ```
  ** 支持的SDK最低版本为21 **
 
@@ -18,7 +18,6 @@ implementation 'com.aliyun.pds:android-sdk:0.1.3'
 ```kotlin
 val token = SDToken("you access token") // 这个通用流程是你们登入自己的账号系统后获取，后端使用 PDS 平台申请的 appKey & appSecret 换取 token 返回给客户端
 val apiHost = "you api host"            // 请在PDS控制台获取你的 api host
-// val config = SDConfig(token, 3600, apiHost) 旧版本方法，已废弃，不建议使用
 val config = SDConfig.Builder(token, apiHost, 3600)
     .canFastUpload()        // 是否支持妙传，默认true (选填)
     .userAgent()            // (选填)
@@ -33,8 +32,8 @@ val config = SDConfig.Builder(token, apiHost, 3600)
 SDClient.instance.init(this, config)
 ```
 
-
-## 下载任务
+## 上传下载
+### 下载任务
 
 **注意任务的进度和状态回调都在子线程,若要更新UI请自行切换到主线程**
 
@@ -57,29 +56,25 @@ val downloadInfo = DownloadRequestInfo.Builder()
     .contentHashName("crc64")       // hash 效验算法名 当前只支持 crc64
     .build()
 
-// 创建任务, 
-val task = SDClient.instance.createDownloadTask(
+// 创建任务并启动任务
+val task = SDClient.instance.startDownloadTask(
     taskId,                 // taskId
     downloadInfo,           // 下载信息
     completeListener,       // 下载完成监听（成功，失败都会回调。失败时会返回错误信息)
     progressListener        // 下载进度监听	
 )
 
-// 暂停任务，只有运行中的任务可以暂停
-task.pause()
+// 默认startDownloadTask即会启动任务，任务被stop后需要再次启动可以调用此方法继续运行
+task.start()
 
-// 恢复任务, 只有暂停态的任务可以恢复
-task.resume()
+// 停止任务，clean参数false代表不清理临时文件，继续start会断点续传，参数为true则代表会清理临时文件及数据，再次start会重头进行任务
+task.stop(clean)
 
-// 取消删除任务
-task.cancel()
 
-// 重启任务
-task.restart()
 ```
 
 
-## 上传任务
+### 上传任务
 
 **注意任务的进度和状态回调都在子线程,若要更新UI请自行切换到主线程**
 
@@ -99,47 +94,82 @@ val uploadInfo = UploadRequestInfo.Builder()
                                         // auto_rename: 当发现同名文件是，云端自动重命名，默认为追加当前时间点，如 xxx _20060102_150405;
                                         // ignore: 允许同名文件;
                                         // refuse：当云端存在同名文件时，拒绝创建新文件，直接提示上传成功
-
     .shareId(shareId)                   //上传到的文件夹来自分享：id(不涉及可不传)
     .shareToken(shareToken)             //上传到的文件夹来自分享：token(不涉及可不传)
     .sharePwd(sharePwd)                 //上传到的文件夹来自分享：pwd(不涉及可不传)
     .build()
 
-// 创建任务
-val task = SDClient.instance.createUploadTask(
+// 创建任务并启动
+val task = SDClient.instance.startUploadTask(
     taskId,                 // 任务id
     uploadInfo,             // 上传信息
     completeListener,       // 上传完成监听（成功，失败都会回调。失败时会返回错误信息)
     progressListener        // 上传进度监听
 )
 
-// 暂停任务
-task.pause()
+// 默认startUploadTask即会启动任务，任务被stop后需要再次启动可以调用此方法继续运行
+task.start()
 
-// 恢复任务
-task.resume()
+// 停止任务，clean参数false代表不清理临时文件，继续start会断点续传，参数为true则代表会清理临时文件及数据，再次start会重头进行任务
+task.stop(clean)
 
-// 删除取消任务
-task.cancel()
 
 ```
+### 任务进度回调
 
-## 文件上传/下载错误信息错误码说明
+```kotlin
+// currentSize 为当前的进度，注意回调不在主线程
+interface OnProgressListener {
+    fun onProgressChange(currentSize : Long)
+}
+```
 
+### 任务结束回调
+
+```kotlin
+interface OnCompleteListener {
+    fun onComplete(taskId: String, fileMeta : SDFileMeta, errorInfo: SDErrorInfo?)
+}
+```
+
+其中fileMeta 为文件相关信息
+```kotlin
+class SDFileMeta(
+    val fileId: String?, // 文件id
+    val fileName: String?, // 文件名
+    val filePath: String?, // 文件路径，上传任务为要上传文件的路径，下载任务为文件保存路径
+    val uploadId: String? = "" //上传任务的 uploadId，不涉及相关业务可以忽略
+)
+```
+
+```kotlin
+class SDErrorInfo(
+    val code: SDTransferError, // 相关错误码
+    val message: String,       // 错误描述
+    val exception: Exception?, // 异常，用于查看堆栈, 以及错误处理
+    var requestId: String? = "" // 如果是后端请求相关错误，则会有该值用于和后端排查问题
+)
+```
+
+#### 错误信息错误码说明
 ```kotlin
 SDTransferError.Unknown // 未知错误
 SDTransferError.Network // 网络错误
-SDTransferError.FileNotExist // 文件没有找到
-SDTransferError.SpaceNotEnough // 空间不足
 SDTransferError.Server // 服务器错误
-SDTransferError.TmpFileNotExist // 下载临时文件不存在
-SDTransferError.PathRuleError // 下载路径规则错误
-SDTransferError.SizeExceed // 文件过大
-SDTransferError.PermissionDenied // 没有权限
-SDTransferError.RemoteFileNotExist // 找不到远程文件
-SDTransferError.ShareLinkCancelled // 分享连接已取消
+SDTransferError.FileNotExist // 上传时，本地文件没有找到
+SDTransferError.SpaceNotEnough // 下载时，本地空间不足
+SDTransferError.TmpFileNotExist // 下载时，本地临时文件不存在
+SDTransferError.PathRuleError // 下载时，保存路径规则错误
+
+```
+> server错误时具体错误内容判断示例：
+```kotlin
+if (SDErrorInfo.getException().getErrorCode().equals("ForbiddenFileInTheRecycleBin")) {
+    return "文件在回收站中，禁止操作"
+}
 ```
 > 注：错误类型为SDTransferError.Server时，错误信息中会包含errorCode，可对照[错误码文档](https://next.api.aliyun.com/document/pds/2022-03-01/errorCode)确定具体错误原因。
+
 
 ## 文件操作接口
 
