@@ -16,20 +16,68 @@
 
 package com.aliyun.pds.sdk.upload
 
-import androidx.room.*
+import android.annotation.SuppressLint
+import android.content.ContentValues
+import android.database.sqlite.SQLiteDatabase
+import com.aliyun.pds.sdk.database.TransferDBModel
 
-@Dao
-interface UploadInfoDao {
+class UploadInfoDao(private val db: SQLiteDatabase) {
 
-    @Query("SELECT * FROM uploadInfo WHERE taskId = :taskId")
-    fun getUploadInfo(taskId : String) : UploadInfo?
+    @SuppressLint("Range")
+    fun getUploadInfo(taskId : String) : UploadInfo? {
+        var info: UploadInfo? = null
+        val cursor = db.query(TransferDBModel.UploadDB.table_name, null, "${TransferDBModel.UploadDB.taskId}=$taskId", null, null, null, null)
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    info = UploadInfo()
+                    info.id = cursor.getInt(cursor.getColumnIndex(TransferDBModel.UploadDB.id))
+                    info.taskId =
+                        cursor.getString(cursor.getColumnIndex(TransferDBModel.UploadDB.taskId))
+                    info.currentBlock =
+                        cursor.getInt(cursor.getColumnIndex(TransferDBModel.UploadDB.currentBlock))
+                    info.fileId =
+                        cursor.getString(cursor.getColumnIndex(TransferDBModel.UploadDB.fileId))
+                    info.uploadId =
+                        cursor.getString(cursor.getColumnIndex(TransferDBModel.UploadDB.uploadId))
+                    info.uploadState =
+                        cursor.getInt(cursor.getColumnIndex(TransferDBModel.UploadDB.uploadState))
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
+        }
+        return info
+    }
 
-    @Insert
-    fun insert(info: UploadInfo) : Long
+    fun insert(info: UploadInfo) : Long {
+        val value = ContentValues().apply {
+            put(TransferDBModel.UploadDB.taskId, info.taskId)
+            put(TransferDBModel.UploadDB.currentBlock, info.currentBlock)
+            put(TransferDBModel.UploadDB.fileId, info.fileId)
+            put(TransferDBModel.UploadDB.uploadId, info.uploadId)
+            put(TransferDBModel.UploadDB.uploadState, info.uploadState)
+        }
+        return db.insert(TransferDBModel.UploadDB.table_name, null, value)
+    }
 
-    @Update
-    fun update(info : UploadInfo)
+    fun update(info : UploadInfo) {
+        val value = ContentValues().apply {
+            put(TransferDBModel.UploadDB.currentBlock, info.currentBlock)
+            put(TransferDBModel.UploadDB.fileId, info.fileId)
+            put(TransferDBModel.UploadDB.uploadId, info.uploadId)
+            put(TransferDBModel.UploadDB.uploadState, info.uploadState)
+        }
+        db.update(TransferDBModel.UploadDB.table_name, value,
+            "${TransferDBModel.UploadDB.id}=?",
+            arrayOf(info.id.toString())
+        )
+    }
 
-    @Delete
-    fun delete(info: UploadInfo)
+    fun delete(info: UploadInfo) {
+        db.delete(TransferDBModel.UploadDB.table_name,
+            "${TransferDBModel.UploadDB.taskId}=?",
+            arrayOf(info.taskId)
+        )
+    }
+
 }

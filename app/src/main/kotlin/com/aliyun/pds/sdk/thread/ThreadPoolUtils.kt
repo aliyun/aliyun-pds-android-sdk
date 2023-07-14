@@ -26,7 +26,6 @@ class ThreadPoolUtils {
     }
 
     val downloadTaskPool: ThreadPoolExecutor
-//    val downloadConcurrentPool: ThreadPoolExecutor
     val taskHandlerThread: ExecutorService = Executors.newSingleThreadExecutor()
     val uploadTaskPool: ThreadPoolExecutor
     private val maxTaskCount = 32
@@ -37,9 +36,6 @@ class ThreadPoolUtils {
             maxTaskCount,
             "download-task"
         ).pool
-
-//        downloadConcurrentPool = ThreadPoolWrap(
-//            4, 4 * maxTaskCount, "download-concurrent").pool
 
         uploadTaskPool = ThreadPoolWrap(
             maxTaskCount,

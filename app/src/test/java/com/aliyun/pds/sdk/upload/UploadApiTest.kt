@@ -21,6 +21,7 @@ import com.alibaba.fastjson.JSONException
 import com.alibaba.fastjson.JSONObject
 import com.aliyun.pds.sdk.MockUtils
 import com.aliyun.pds.sdk.SDClient
+import com.aliyun.pds.sdk.database.DatabaseHelper
 import com.aliyun.pds.sdk.model.*
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -40,6 +41,9 @@ class UploadApiTest {
     @Mock
     private lateinit var mockContext: Context
 
+    @Mock
+    private lateinit var databaseHelper: DatabaseHelper
+
 
     @Before
     fun setup() {
@@ -48,7 +52,7 @@ class UploadApiTest {
 
         Mockito.`when`(mockContext.applicationContext).thenReturn(mockContext)
         SDClient.instance.init(mockContext, MockUtils.mockSDConfig(apiHost = mockHost()))
-
+        SDClient.instance.database = databaseHelper
     }
 
     private fun mockServer(code: Int, body: String) {

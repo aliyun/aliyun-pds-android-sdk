@@ -17,9 +17,8 @@
 package com.aliyun.pds.sdk
 
 
-interface Operation {
+internal interface Operation {
     fun execute()
-    fun stop()
-    fun cancel()
+    fun stop(clean: Boolean)
 }
 

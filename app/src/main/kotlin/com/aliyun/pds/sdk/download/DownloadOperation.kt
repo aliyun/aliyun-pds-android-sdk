@@ -32,7 +32,7 @@ import java.lang.Exception
 import java.util.concurrent.*
 
 
-open class DownloadOperation(
+internal open class DownloadOperation(
     private val context: Context,
     protected val task: SDDownloadTask,
     private val blockInfoDao: DownloadBlockInfoDao,
@@ -51,10 +51,7 @@ open class DownloadOperation(
     val needSaveBlockList = ConcurrentHashMap<String, DownloadBlockInfo>()
 
     private var taskFuture: Future<*>? = null
-
-    //    private var blocksFuture: MutableList<Future<*>> = arrayListOf()
     private var threadPool: ThreadPoolExecutor? = null
-
 
     private var downloadUrl = task.downloadUrl
     private var currentSize: Long = 0
@@ -107,6 +104,8 @@ open class DownloadOperation(
         val queue = ArrayBlockingQueue<Pair<DownloadBlockInfo, HTTPUtils.OnTransferChangeListener>>(
             maxBlockCount)
         val countDownLatch = CountDownLatch(blockList.size)
+        // ide has a warning, kotlin Long is not Object???
+        val currentSizeLock = "currentSizeLock"
         for (i in blockList.indices) {
             val start = blockList[i].start
             val offset = blockList[i].offset
@@ -120,7 +119,7 @@ open class DownloadOperation(
             val listener = object : HTTPUtils.OnTransferChangeListener {
                 override fun onChange(size: Long) {
                     blockInfo.offset += size
-                    synchronized(currentSize) {
+                    synchronized(currentSizeLock) {
                         currentSize += size
                     }
                     needSaveBlockList[blockInfo.id.toString()] = blockInfo
@@ -131,7 +130,7 @@ open class DownloadOperation(
             queue.add(Pair(blockInfo, listener))
         }
         var i = 0
-        val limit = 4.coerceAtMost(blockList.size);
+        val limit = 4.coerceAtMost(blockList.size)
         var exception: Exception? = null
         val lock = ""
         while (i < limit) {
@@ -146,7 +145,6 @@ open class DownloadOperation(
                         synchronized(lock) {
                             if (null != exception) return@Callable
                             exception = e
-//                            Log.d("DownloadOperation", exception.toString())
                             for (i in 0 until countDownLatch.count) {
                                 countDownLatch.countDown()
                             }
@@ -164,7 +162,6 @@ open class DownloadOperation(
             if (exception != null) {
                 throw exception!!
             }
-//            Log.d("DownloadOperation", "exception is null")
         } catch (e: InterruptedException) {
         }
     }
@@ -179,25 +176,20 @@ open class DownloadOperation(
         removeBlockInfo()
     }
 
-    private fun errorHandle(e: Exception) {
-        finish(e)
-        cancel()
-    }
 
-    override fun stop() {
+    override fun stop(clean: Boolean) {
         stopped = true
+        if (clean) {
+            blockList.clear()
+            blockInfoDao.delete(task.taskId)
+            if (tmpFile.exists()) {
+                tmpFile.delete()
+            }
+        }
         threadPool?.shutdownNow()
         taskFuture?.cancel(true)
     }
 
-    override fun cancel() {
-        stop()
-        blockList.clear()
-        blockInfoDao.delete(task.taskId)
-        if (tmpFile.exists()) {
-            tmpFile.delete()
-        }
-    }
 
     fun progressChange() {
         val currentTime = System.currentTimeMillis()
@@ -223,11 +215,12 @@ open class DownloadOperation(
         if (stopped) {
             return
         }
-        var errorInfo = covertFromException(e)
+        val errorInfo = covertFromException(e)
+        task.state = SDBaseTask.TaskState.FINISH
         task.completeListener?.onComplete(task.taskId,
             SDFileMeta(task.fileId, task.fileName, task.filePath, ""), errorInfo
         )
-        stop()
+        stop(false)
     }
 
 
@@ -289,13 +282,13 @@ open class DownloadOperation(
             if (blockList.isNotEmpty()) {
                 val ids = blockInfoDao.insert(blockList)
                 for (i in ids.indices) {
-                    blockList[i].id = ids[i]
+                    blockList[i].id = ids[i].toInt()
                 }
             }
         }
     }
 
-    fun checkDownloadState() {
+    private fun checkDownloadState() {
 
         val fileLength = getFileLength()
         if (fileLength >= 0 && fileLength < task.fileSize) {
@@ -328,7 +321,7 @@ open class DownloadOperation(
             } catch (e: Exception) {
                 exception = e
                 if (e is DownloadUrl403Exception) {
-                    val oldUrl = downloadUrl;
+                    val oldUrl = downloadUrl
                     synchronized(downloadUrl!!) {
                         if (oldUrl == downloadUrl) {
                             downloadUrl = refreshDownloadUrl()
@@ -361,7 +354,7 @@ open class DownloadOperation(
     }
 
     private fun removeBlockInfo() {
-        blockList?.clear()
+        blockList.clear()
         blockInfoDao.delete(task.taskId)
     }
 
@@ -379,7 +372,7 @@ open class DownloadOperation(
     }
 
     private fun checkSum() {
-        if (0L == task.fileSize) {
+        if (0L == task.fileSize || null == task.contentHash) {
             return
         }
 
@@ -387,7 +380,7 @@ open class DownloadOperation(
             throw SDTmpFileNotExistException("tmp file not exist")
         }
 
-        if (!resultCheck.check(tmpFile, task)) {
+        if (!resultCheck.check(tmpFile, task.contentHash)) {
             throw SDUnknownException("checkSum error")
         }
     }
@@ -401,7 +394,7 @@ open class DownloadOperation(
     }
 
 
-    open fun refreshDownloadUrl(): String {
+    internal fun refreshDownloadUrl(): String {
         val resp = DownloadApi.instance.refreshDownloadUrl(task, config.downloadUrlExpiredTime)
         return if (null != resp && resp.code == 200 && !(resp.url.isNullOrEmpty())) {
             resp.url.toString()
@@ -409,10 +402,7 @@ open class DownloadOperation(
             if (null == resp) {
                 throw SDNetworkException("network error")
             } else {
-                if ("NotFound.File" == resp.errorCode) {
-                    throw RemoteFileNotFoundException("file not found")
-                }
-                throw SDServerException(resp.code, resp.errorCode, resp.errorMessage)
+                throw SDServerException(resp.code, resp.errorCode, resp.requestId, resp.errorMessage)
             }
         }
     }

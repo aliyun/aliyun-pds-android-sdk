@@ -67,7 +67,7 @@ class HTTPUtilsTest {
         server.enqueue(response)
         server.start()
         val url = "http://${server.hostName}:${server.port}"
-        val resp = HTTPUtils.instance.uploadData(url, File("./download.20M"), "", 0, 1024 * 10, null)
+        val resp = HTTPUtils.instance.uploadData(url, File("./pds_test/download.file"), "", 0, 1024 * 10, null)
         assert(resp?.code == 201)
     }
 

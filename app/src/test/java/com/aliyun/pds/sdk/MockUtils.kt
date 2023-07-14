@@ -24,23 +24,23 @@ object MockUtils {
 
     fun mockSDConfig(apiHost: String = "apiHost"): SDConfig {
         return SDConfig.Builder(SDToken("token", 3600), apiHost, 3600)
-                    .maxRetryCount(3)
-                    .canFastUpload(true)
-                    .isDebug(true)
-                    .downloadBlockSize(1024 * 1024 * 5L)
-                    .uploadBlockSize(1024 * 1024 * 5L)
-                    .connectTimeout(30L)
-                    .readTimeout(30L)
-                    .build()
+            .maxRetryCount(3)
+            .canFastUpload(true)
+            .isDebug(true)
+            .downloadBlockSize(1024 * 1024 * 10L)
+            .uploadBlockSize(1024 * 1024 * 5L)
+            .connectTimeout(30L)
+            .readTimeout(30L)
+            .build()
     }
 
     fun mockUploadTask(
         taskId: String = "567",
         fileName: String = "fileName",
         fileId: String = "fileId",
-        fileSize: Long = 2000,
+        fileSize: Long = 1024 * 1024 * 10L,
         parentId: String = "parentId",
-        filePath: String = "pds/filePath",
+        filePath: String = "./pds_test/download.file",
         shareId: String = "",
         shareToken: String = "",
         sharePwd: String = "",
@@ -53,12 +53,12 @@ object MockUtils {
             fileName,
             filePath,
             fileSize,
+            fileId,
             parentId,
             mimeType,
             driveId,
-            null,
+            shareId,
             checkNameMode = "auto_rename",
-            shareId = shareId,
             shareToken = shareToken,
             sharePwd = sharePwd,
         )
@@ -67,10 +67,10 @@ object MockUtils {
     fun mockDownloadTask(
         taskId: String = "123",
         fileId: String = "fileId",
-        fileSize: Long = 1000,
-        fileName: String = "name",
+        fileSize: Long = 1024 * 1024 * 20L,
+        fileName: String = "download.file",
         downloadUrl: String = "url",
-        savePath: String = "savePath",
+        filePath: String = "./pds_test/savePath/download.file",
         shareToken: String = "",
         sharePwd: String = "",
         driveId: String = "driveId",
@@ -83,7 +83,7 @@ object MockUtils {
             fileName,
             fileSize,
             downloadUrl,
-            savePath,
+            filePath,
             driveId,
             shareId,
             shareToken = shareToken,

@@ -25,7 +25,7 @@ enum class FunType {
     Create, UploadUrl, Compelte
 }
 
-class UploadApi(
+internal class UploadApi(
     val task: SDUploadTask
 ) {
 
@@ -34,7 +34,7 @@ class UploadApi(
         try {
             resp = SDClient.instance.fileApi.fileCreate(params, task.shareToken)
             if (401 == resp?.code) {
-                shareToken401(FunType.Create, params)
+                resp = shareToken401(FunType.Create, params) as FileCreateResp
             }
         } catch (e: IOException) {
             e.printStackTrace()
@@ -47,7 +47,7 @@ class UploadApi(
         try {
             resp = SDClient.instance.fileApi.fileGetUploadUrl(params, task.shareToken)
             if (401 == resp?.code) {
-                shareToken401(FunType.UploadUrl, params)
+                resp = shareToken401(FunType.UploadUrl, params) as FileGetUploadUrlResp
             }
         } catch (e: IOException) {
             e.printStackTrace()
@@ -60,7 +60,7 @@ class UploadApi(
         try {
             resp = SDClient.instance.fileApi.fileComplete(params, task.shareToken)
             if (401 == resp?.code) {
-                shareToken401(FunType.Compelte, params)
+                resp = shareToken401(FunType.Compelte, params) as FileInfoResp
             }
         } catch (e: IOException) {
             e.printStackTrace()

@@ -128,7 +128,7 @@ class HTTPUtils {
             if (403 == response.code) {
                 throw DownloadUrl403Exception("download url timeout")
             } else {
-                throw SDServerException(response.code, response.message, response.body.toString())
+                throw SDServerException(response.code, response.message, "", response.body.toString())
             }
         } else {
 

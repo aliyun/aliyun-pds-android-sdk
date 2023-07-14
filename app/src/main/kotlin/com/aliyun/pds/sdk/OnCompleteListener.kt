@@ -18,7 +18,6 @@
 
 package com.aliyun.pds.sdk
 
-import java.lang.Exception
 
 interface OnCompleteListener {
     fun onComplete(taskId: String, fileMeta : SDFileMeta, errorInfo: SDErrorInfo?)

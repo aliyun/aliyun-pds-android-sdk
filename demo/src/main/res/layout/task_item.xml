@@ -17,11 +17,12 @@
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="64dp">
+    android:layout_height="wrap_content">
 
     <TextView
         android:id="@+id/name"
         android:textSize="12sp"
+        android:layout_marginLeft="12dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
@@ -29,11 +30,10 @@
         android:layout_marginLeft="12dp"
         android:id="@+id/progressbar"
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@id/name"
-        android:layout_alignParentRight="true"
-        android:layout_toRightOf="@id/name"
+        android:layout_below="@id/name"
+        android:layout_marginTop="10dp"
         android:indeterminateTint="@color/purple_500"
         android:max="1000" />
 

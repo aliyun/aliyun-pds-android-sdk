@@ -14,9 +14,28 @@
  *  limitations under the License.
  */
 
-package com.aliyun.pds.sdk.exception
+package com.aliyun.pds.sdk.download
 
-import java.lang.Exception
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.junit.MockitoJUnitRunner
+import java.io.File
 
-class RemoteFileNotFoundException(msg: String): Exception(msg) {
+@RunWith(MockitoJUnitRunner::class)
+class ResultCheckTest {
+
+
+    @Before
+    fun init() {
+
+    }
+
+    @Test
+    fun crcCheckTest() {
+        val crc64 = CRC64Check()
+        crc64.check(File("./pds_test/crc.jpg"), "4470037415778292408")
+    }
+
+
 }

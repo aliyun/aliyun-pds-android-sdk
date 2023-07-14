@@ -21,29 +21,21 @@ import java.io.File
 
 abstract class ResultCheck {
 
-    abstract fun check(file: File, task: SDDownloadTask): Boolean
+    abstract fun check(file: File, hash: String): Boolean
 }
 
 
 class CRC64Check : ResultCheck() {
-    override fun check(file: File, task: SDDownloadTask): Boolean {
-        if (task.contentHash.isNullOrEmpty()) return true
-        return CRC64.fromFile(file)?.stringValue == task.contentHash
+    override fun check(file: File, hash: String): Boolean {
+        return CRC64.fromFile(file)?.stringValue == hash
     }
 }
 
-class SizeCheck : ResultCheck() {
 
-    override fun check(file: File, task: SDDownloadTask): Boolean {
-        if (!file.exists()) return false
-        return file.length() == task.fileSize
-    }
-}
-
-class SHA1Check : ResultCheck() {
-
-    override fun check(file: File, task: SDDownloadTask): Boolean {
-        return true
-    }
-
-}
+//class SHA1Check : ResultCheck() {
+//
+//    override fun check(file: File, task: SDDownloadTask): Boolean {
+//        return true
+//    }
+//
+//}
